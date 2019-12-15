@@ -1,6 +1,7 @@
 ###
 *.bmp
 *.png
+*.avif
 
 ### C++ template
 # Compiled Object files
