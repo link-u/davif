@@ -30,6 +30,7 @@ public:
   void putU16L(uint16_t data);
   void putU32L(uint32_t data);
   void append(std::vector<uint8_t> const& data);
+  void append(uint8_t const* data, size_t length);
 };
 
 }

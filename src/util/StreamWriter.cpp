@@ -23,9 +23,11 @@ void StreamWriter::putU32L(uint32_t data) {
 }
 
 void StreamWriter::append(std::vector<uint8_t> const& data) {
-  size_t const originalSize = this->buff_.size();
-  this->buff_.resize(originalSize + data.size());
-  std::copy(data.cbegin(), data.cend(), std::next(this->buff_.data(), originalSize));
+  this->buff_.insert(this->buff_.end(), data.begin(), data.end());
+}
+
+void StreamWriter::append(uint8_t const*const data, size_t const length) {
+  this->buff_.insert(this->buff_.end(), data, data + length);
 }
 
 }
