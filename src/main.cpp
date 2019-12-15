@@ -1,10 +1,14 @@
-#include <dav1d/dav1d.h>
 #include <vector>
 #include <filesystem>
 #include <optional>
-#include "../external/libavif-container/src/avif/Parser.hpp"
-#include "../external/libavif-container/src/util/Logger.hpp"
-#include "../external/libyuv/include/libyuv.h"
+
+#include <dav1d/dav1d.h>
+#include <libyuv.h>
+#include <png.h>
+
+#include <avif/Parser.hpp>
+#include <util/Logger.hpp>
+
 #include "util/File.h"
 #include "util/StreamWriter.hpp"
 
@@ -20,7 +24,7 @@ std::vector<uint8_t> createBitmap(Dav1dPicture const& pic) {
   std::vector<uint8_t> img;
   img.resize(stride * h);
 
-  switch(pic.p.layout){
+  switch(pic.p.layout) {
     case DAV1D_PIXEL_LAYOUT_I400: { ///< monochrome
       libyuv::I400ToARGB(
           reinterpret_cast<const uint8_t *>(pic.data[0]),

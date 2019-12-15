@@ -6,8 +6,22 @@ set(CMAKE_CXX_FLAGS_DEBUG "-g3 -O0 -fno-omit-frame-pointer")
 
 ###############################################################################
 add_subdirectory(external/libavif-container)
+include_directories(external/libavif-container/src)
+###############################################################################
 add_subdirectory(external/libyuv)
 include_directories(external/libyuv/include)
+###############################################################################
+set(SKIP_INSTALL_ALL ON)
+set(ZLIB_TESTS OFF CACHE BOOL "Build zlib tests")
+add_subdirectory(external/zlib)
+include_directories(external/zlib)
+###############################################################################
+set(SKIP_INSTALL_ALL ON)
+set(PNG_SHARED OFF CACHE BOOL "Build shared lib")
+set(PNG_STATIC ON CACHE BOOL "Build static lib")
+set(PNG_TESTS OFF CACHE BOOL "Build libpng tests")
+add_subdirectory(external/libpng)
+include_directories(external/libpng)
 ###############################################################################
 include(ExternalProject)
 ###############################################################################
@@ -64,5 +78,7 @@ add_executable(davif
 add_dependencies(davif dav1d_repo)
 target_link_libraries(davif libavif-container)
 target_link_libraries(davif yuv)
+target_link_libraries(davif zlibstatic)
+target_link_libraries(davif png_static)
 target_link_libraries(davif dav1d)
 target_link_libraries(davif pthread)

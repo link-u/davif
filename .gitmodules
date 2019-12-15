@@ -10,3 +10,10 @@
 [submodule "external/libyuv"]
 	path = external/libyuv
 	url = https://chromium.googlesource.com/libyuv/libyuv
+[submodule "external/libpng"]
+	path = external/libpng
+	url = git://git.code.sf.net/p/libpng/code
+[submodule "external/zlib"]
+	path = external/zlib
+	url = git@github.com:madler/zlib.git
+	ignore = dirty
