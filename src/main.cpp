@@ -7,7 +7,7 @@
 #include <png.h>
 
 #include <avif/Parser.hpp>
-#include <util/Logger.hpp>
+#include <avif/util/FileLogger.hpp>
 
 #include "util/File.h"
 #include "util/StreamWriter.hpp"
@@ -93,7 +93,7 @@ std::vector<uint8_t> convertToABGR(Dav1dPicture const& pic) {
   return std::move(rotated);
 }
 
-std::optional<std::string> writeBitmap(util::Logger& log, std::string const& filename, std::vector<uint8_t> const& img, size_t const w, size_t const h) {
+std::optional<std::string> writeBitmap(avif::util::Logger& log, std::string const& filename, std::vector<uint8_t> const& img, size_t const w, size_t const h) {
   static int const headerSize = 54;
   util::StreamWriter bmp;
   // BMP header
@@ -125,7 +125,7 @@ static void png_write_callback(png_structp  png_ptr, png_bytep data, png_size_t 
   buff->append(data, length);
 }
 
-std::optional<std::string> writePNG(util::Logger& log, std::string const& filename, std::vector<uint8_t>& img, int w, int h) {
+std::optional<std::string> writePNG(avif::util::Logger& log, std::string const& filename, std::vector<uint8_t>& img, int w, int h) {
   //FIXME(ledyba-z): add error handling
   png_structp p = png_create_write_struct(PNG_LIBPNG_VER_STRING, nullptr, nullptr, nullptr);
   png_infop info_ptr = png_create_info_struct(p);
@@ -151,7 +151,7 @@ std::optional<std::string> writePNG(util::Logger& log, std::string const& filena
 
 
 int main(int argc, char** argv) {
-  util::Logger log(stdout, stderr, util::Logger::DEBUG);
+  avif::util::FileLogger log(stdout, stderr, avif::util::Logger::DEBUG);
   if(argc <= 2) {
     log.error("usage: avif-decoder <filename>.avif <filename>.{bmp, png}");
     return -1;
