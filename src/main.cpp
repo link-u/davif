@@ -136,7 +136,7 @@ std::optional<std::string> writePNG(util::Logger& log, std::string const& filena
                PNG_FILTER_TYPE_DEFAULT);
   std::vector<uint8_t *> rows;
   rows.resize(h);
-  const int stride = w * 4;
+  int const stride = w * 4;
   for(int y = 0; y < h; ++y) {
     rows[y] = img.data() + (stride * y);
   }
