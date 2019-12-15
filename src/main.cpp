@@ -153,7 +153,7 @@ std::optional<std::string> writePNG(util::Logger& log, std::string const& filena
 int main(int argc, char** argv) {
   util::Logger log(stdout, stderr, util::Logger::DEBUG);
   if(argc <= 2) {
-    log.error("usage: avif-decoder <filename>.avif <filename>.bmp");
+    log.error("usage: avif-decoder <filename>.avif <filename>.{bmp, png}");
     return -1;
   }
   std::string inputFilename = std::string(argv[1]);
