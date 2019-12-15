@@ -16,7 +16,7 @@ bool endsWidh(std::string const& target, std::string const& suffix) {
   if(target.size() < suffix.size()) {
     return false;
   }
-  return target.substr(target.size()-suffix.size(), target.size()) == suffix;
+  return target.substr(target.size()-suffix.size()) == suffix;
 }
 
 void nop_free_callback(const uint8_t *buf, void *cookie) {
