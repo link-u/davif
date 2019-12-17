@@ -184,12 +184,12 @@ int main(int argc, char** argv) {
 
   // parse ISOBMFF
   avif::Parser parser(log, std::move(std::get<0>(avif_data)));
-  std::variant<std::shared_ptr<avif::FileBox>, std::string> res = parser.parse();
-  if(std::holds_alternative<std::string>(res)){
-    log.error("Failed to parse %s as avif: %s\n", inputFilename, std::get<1>(res));
+  std::shared_ptr<avif::Parser::Result> res = parser.parse();
+  if(!res->isSuccess()){
+    log.error("Failed to parse %s as avif: %s\n", inputFilename, res->error());
     return -1;
   }
-  std::shared_ptr<avif::FileBox> fileBox = std::get<0>(res);
+  std::shared_ptr<const avif::FileBox> fileBox = res->fileBox();
 
   // start decoding
   Dav1dData data{};
@@ -198,12 +198,12 @@ int main(int argc, char** argv) {
   size_t const baseOffset = fileBox->metaBox.itemLocationBox.items[0].baseOffset;
   size_t const extentOffset = fileBox->metaBox.itemLocationBox.items[0].extents[0].extentOffset;
   size_t const extentLength = fileBox->metaBox.itemLocationBox.items[0].extents[0].extentLength;
-  auto avifBegin = parser.buffer().cbegin();
-  auto imgBegin = std::next(avifBegin, baseOffset + extentOffset);
-  auto imgEnd = std::next(imgBegin, extentLength);
+  auto const avifBegin = res->buffer().data();
+  auto const imgBegin = std::next(avifBegin, baseOffset + extentOffset);
+  auto const imgEnd = std::next(imgBegin, extentLength);
   // FIXME(ledyba-z): avoid copy
   std::vector<uint8_t> obu_data = std::vector<uint8_t>(imgBegin, imgEnd);
-  dav1d_data_wrap(&data, obu_data.data(), obu_data.size(), nop_free_callback, nullptr);
+  dav1d_data_wrap(&data, imgBegin, std::distance(imgBegin, imgEnd), nop_free_callback, nullptr);
   err = dav1d_send_data(ctx, &data);
 
   if(err < 0) {

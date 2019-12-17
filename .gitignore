@@ -2,6 +2,8 @@
 *.bmp
 *.png
 *.avif
+/perf.data
+/perf.data.old
 
 ### C++ template
 # Compiled Object files
