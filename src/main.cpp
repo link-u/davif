@@ -198,8 +198,8 @@ int main(int argc, char** argv) {
   size_t const baseOffset = fileBox.metaBox.itemLocationBox.items[0].baseOffset;
   size_t const extentOffset = fileBox.metaBox.itemLocationBox.items[0].extents[0].extentOffset;
   size_t const extentLength = fileBox.metaBox.itemLocationBox.items[0].extents[0].extentLength;
-  auto const avifBegin = res->buffer().data();
-  auto const imgBegin = std::next(avifBegin, baseOffset + extentOffset);
+  auto const buffBegin = res->buffer().data();
+  auto const imgBegin = std::next(buffBegin, baseOffset + extentOffset);
   auto const imgEnd = std::next(imgBegin, extentLength);
   dav1d_data_wrap(&data, imgBegin, std::distance(imgBegin, imgEnd), nop_free_callback, nullptr);
   err = dav1d_send_data(ctx, &data);
