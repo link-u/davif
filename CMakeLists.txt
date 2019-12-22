@@ -5,22 +5,22 @@ set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_FLAGS_DEBUG "-g3 -O0 -fno-omit-frame-pointer")
 
 ###############################################################################
-add_subdirectory(external/libavif-container)
+add_subdirectory(external/libavif-container EXCLUDE_FROM_ALL)
 include_directories(external/libavif-container/src)
 ###############################################################################
-add_subdirectory(external/libyuv)
+add_subdirectory(external/libyuv EXCLUDE_FROM_ALL)
 include_directories(external/libyuv/include)
 ###############################################################################
 set(SKIP_INSTALL_ALL ON)
 set(ZLIB_TESTS OFF CACHE BOOL "Build zlib tests")
-add_subdirectory(external/zlib)
+add_subdirectory(external/zlib EXCLUDE_FROM_ALL)
 include_directories(external/zlib)
 ###############################################################################
 set(SKIP_INSTALL_ALL ON)
 set(PNG_SHARED OFF CACHE BOOL "Build shared lib")
 set(PNG_STATIC ON CACHE BOOL "Build static lib")
 set(PNG_TESTS OFF CACHE BOOL "Build libpng tests")
-add_subdirectory(external/libpng)
+add_subdirectory(external/libpng EXCLUDE_FROM_ALL)
 include_directories(external/libpng)
 ###############################################################################
 include(ExternalProject)
