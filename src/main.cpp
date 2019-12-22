@@ -201,8 +201,6 @@ int main(int argc, char** argv) {
   auto const avifBegin = res->buffer().data();
   auto const imgBegin = std::next(avifBegin, baseOffset + extentOffset);
   auto const imgEnd = std::next(imgBegin, extentLength);
-  // FIXME(ledyba-z): avoid copy
-  std::vector<uint8_t> obu_data = std::vector<uint8_t>(imgBegin, imgEnd);
   dav1d_data_wrap(&data, imgBegin, std::distance(imgBegin, imgEnd), nop_free_callback, nullptr);
   err = dav1d_send_data(ctx, &data);
 
