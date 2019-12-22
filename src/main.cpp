@@ -185,19 +185,19 @@ int main(int argc, char** argv) {
   // parse ISOBMFF
   avif::Parser parser(log, std::move(std::get<0>(avif_data)));
   std::shared_ptr<avif::Parser::Result> res = parser.parse();
-  if(!res->isSuccess()){
+  if(!res->ok()){
     log.error("Failed to parse %s as avif: %s\n", inputFilename, res->error());
     return -1;
   }
-  std::shared_ptr<const avif::FileBox> fileBox = res->fileBox();
+  avif::FileBox const& fileBox = res->fileBox();
 
   // start decoding
   Dav1dData data{};
   Dav1dPicture pic{};
   // FIXME(ledyba-z): handle multiple pixtures
-  size_t const baseOffset = fileBox->metaBox.itemLocationBox.items[0].baseOffset;
-  size_t const extentOffset = fileBox->metaBox.itemLocationBox.items[0].extents[0].extentOffset;
-  size_t const extentLength = fileBox->metaBox.itemLocationBox.items[0].extents[0].extentLength;
+  size_t const baseOffset = fileBox.metaBox.itemLocationBox.items[0].baseOffset;
+  size_t const extentOffset = fileBox.metaBox.itemLocationBox.items[0].extents[0].extentOffset;
+  size_t const extentLength = fileBox.metaBox.itemLocationBox.items[0].extents[0].extentLength;
   auto const avifBegin = res->buffer().data();
   auto const imgBegin = std::next(avifBegin, baseOffset + extentOffset);
   auto const imgEnd = std::next(imgBegin, extentLength);
