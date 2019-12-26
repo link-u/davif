@@ -13,15 +13,22 @@ Example avif files are available in [AOMediaCodec/av1-avif](https://github.com/A
 ## how to build
 
 ```bash
-% git clone --recurse-submodules --recursive git@link-u.github.com:link-u/davif.git
-% cd davif
-%mkdir build && cd build
-% cmake ..
-% make
-% ./davif
+# cloning this repository with dependencies.
+git clone --recurse-submodules --recursive git@link-u.github.com:link-u/davif.git
+cd davif
+
+# build davif
+mkdir build && cd build
+cmake ..
+make
+
+# show usage
+./davif
 SYNOPSIS
         davif -i <input.avif> -o <output.{bmp, png}>
 
+# decode an avif image.
+./davif -i input.avif -o output.png
 ```
 
 ## limitations
