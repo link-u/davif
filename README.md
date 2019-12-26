@@ -29,3 +29,7 @@ SYNOPSIS
  - Not supported:
    - Alpha channel(Auxially images)
    - Color profiles
+
+# Related repositories
+
+ - [link-u/libavif-container](https://github.com/link-u/libavif-container) - a library to parse avif container.
