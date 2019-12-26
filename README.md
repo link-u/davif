@@ -36,6 +36,7 @@ SYNOPSIS
  - Not supported:
    - Alpha channel(Auxially images)
    - Color profiles
+   - HDR images.
 
 # Related repositories
 
