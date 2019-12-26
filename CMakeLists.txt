@@ -12,15 +12,17 @@ add_subdirectory(external/libyuv EXCLUDE_FROM_ALL)
 include_directories(external/libyuv/include)
 ###############################################################################
 set(SKIP_INSTALL_ALL ON)
-set(ZLIB_TESTS OFF CACHE BOOL "Build zlib tests")
+set(ZLIB_TESTS OFF BOOL)
 add_subdirectory(external/zlib EXCLUDE_FROM_ALL)
 include_directories(external/zlib)
 ###############################################################################
 set(SKIP_INSTALL_ALL ON)
-set(PNG_SHARED OFF CACHE BOOL "Build shared lib")
-set(PNG_STATIC ON CACHE BOOL "Build static lib")
-set(PNG_TESTS OFF CACHE BOOL "Build libpng tests")
+set(PNG_SHARED OFF CACHE BOOL "Build shared lib" FORCE)
+set(PNG_STATIC ON CACHE BOOL "Build static lib" FORCE)
+set(PNG_TESTS OFF CACHE BOOL "Build libpng tests" FORCE)
 add_subdirectory(external/libpng EXCLUDE_FROM_ALL)
+#FIXME(ledyba-z): Workaround to include "pnglibconf.h"
+target_include_directories(png_static PUBLIC ${CMAKE_CURRENT_BINARY_DIR}/external/libpng)
 include_directories(external/libpng)
 ###############################################################################
 include(ExternalProject)
