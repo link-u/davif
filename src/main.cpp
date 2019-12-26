@@ -11,12 +11,23 @@
 
 #include "util/File.h"
 #include "util/StreamWriter.hpp"
+#include "../external/clipp/include/clipp.h"
+
+namespace {
 
 bool endsWidh(std::string const& target, std::string const& suffix) {
   if(target.size() < suffix.size()) {
     return false;
   }
   return target.substr(target.size()-suffix.size()) == suffix;
+}
+
+std::string basename(std::string const& path) {
+  auto pos = path.find_last_of('/');
+  if(pos == std::string::npos) {
+    return path;
+  }
+  return path.substr(pos+1);
 }
 
 void nop_free_callback(const uint8_t *buf, void *cookie) {
@@ -120,7 +131,7 @@ std::optional<std::string> writeBitmap(avif::util::Logger& log, std::string cons
   return std::move(result);
 }
 
-static void png_write_callback(png_structp  png_ptr, png_bytep data, png_size_t length) {
+void png_write_callback(png_structp  png_ptr, png_bytep data, png_size_t length) {
   auto buff = reinterpret_cast<util::StreamWriter*>(png_get_io_ptr(png_ptr));
   buff->append(data, length);
 }
@@ -149,20 +160,28 @@ std::optional<std::string> writePNG(avif::util::Logger& log, std::string const& 
   return std::move(result);
 }
 
+}
 
 int main(int argc, char** argv) {
-  avif::util::FileLogger log(stdout, stderr, avif::util::Logger::DEBUG);
-  if(argc <= 2) {
-    log.error("usage: avif-decoder <filename>.avif <filename>.{bmp, png}");
-    return -1;
-  }
-  std::string inputFilename = std::string(argv[1]);
-  std::string outputFilename = std::string(argv[2]);
-  if(inputFilename == outputFilename) {
-    log.error("usage: davif <filename>.avif <filename>.{bmp, png}");
-    return -1;
+  std::string inputFilename = {};
+  std::string outputFilename = {};
+  {
+    using namespace clipp;
+    auto cli = (
+        required("-i", "--input") & value("input.avif", inputFilename),
+        required("-o", "--output") & value("output.{bmp, png}", outputFilename)
+    );
+    if(!parse(argc, argv, cli)) {
+      std::cerr << make_man_page(cli, basename(std::string(argv[0])));
+      return -1;
+    }
+    if(inputFilename == outputFilename) {
+      std::cerr << make_man_page(cli, basename(std::string(argv[0])));
+      return -1;
+    }
   }
 
+  avif::util::FileLogger log(stdout, stderr, avif::util::Logger::DEBUG);
   log.debug("dav1d: %s", dav1d_version());
 
   // Init dav1d

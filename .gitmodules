@@ -17,3 +17,6 @@
 	path = external/zlib
 	url = git@github.com:madler/zlib.git
 	ignore = dirty
+[submodule "external/clipp"]
+	path = external/clipp
+	url = git@github.com:muellan/clipp.git
