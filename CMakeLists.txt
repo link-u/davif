@@ -27,25 +27,6 @@ include_directories(external/libpng)
 ###############################################################################
 include(ExternalProject)
 ###############################################################################
-IF(CMAKE_BUILD_TYPE MATCHES Debug)
-    ExternalProject_Add(dav1d_repo
-            PREFIX ${CMAKE_BINARY_DIR}
-            URL ${CMAKE_SOURCE_DIR}/external/dav1d
-            CONFIGURE_COMMAND
-            env "CFLAGS=${CMAKE_CXX_FLAGS_DEBUG}" meson setup
-            --prefix=${CMAKE_BINARY_DIR}
-            --libdir=lib
-            --default-library static
-            --buildtype=debug
-            -Denable_asm=false
-            --optimization=g
-            "${CMAKE_SOURCE_DIR}/external/dav1d"
-            "${CMAKE_BINARY_DIR}/build-dav1d"
-            BUILD_COMMAND ninja -C "${CMAKE_BINARY_DIR}/build-dav1d"
-            INSTALL_DIR ${CMAKE_BINARY_DIR}
-            INSTALL_COMMAND ninja install -C "${CMAKE_BINARY_DIR}/build-dav1d"
-            )
-ENDIF(CMAKE_BUILD_TYPE MATCHES Debug)
 IF(CMAKE_BUILD_TYPE MATCHES Release)
     ExternalProject_Add(dav1d_repo
             PREFIX ${CMAKE_BINARY_DIR}
@@ -64,7 +45,25 @@ IF(CMAKE_BUILD_TYPE MATCHES Release)
             INSTALL_DIR ${CMAKE_BINARY_DIR}
             INSTALL_COMMAND ninja install -C "${CMAKE_BINARY_DIR}/build-dav1d"
             )
-ENDIF(CMAKE_BUILD_TYPE MATCHES Release)
+ELSE()
+    ExternalProject_Add(dav1d_repo
+            PREFIX ${CMAKE_BINARY_DIR}
+            URL ${CMAKE_SOURCE_DIR}/external/dav1d
+            CONFIGURE_COMMAND
+            env "CFLAGS=${CMAKE_CXX_FLAGS_DEBUG}" meson setup
+            --prefix=${CMAKE_BINARY_DIR}
+            --libdir=lib
+            --default-library static
+            --buildtype=debug
+            -Denable_asm=false
+            --optimization=g
+            "${CMAKE_SOURCE_DIR}/external/dav1d"
+            "${CMAKE_BINARY_DIR}/build-dav1d"
+            BUILD_COMMAND ninja -C "${CMAKE_BINARY_DIR}/build-dav1d"
+            INSTALL_DIR ${CMAKE_BINARY_DIR}
+            INSTALL_COMMAND ninja install -C "${CMAKE_BINARY_DIR}/build-dav1d"
+            )
+ENDIF()
 link_directories(${CMAKE_BINARY_DIR}/lib)
 include_directories(${CMAKE_BINARY_DIR}/include)
 ###############################################################################
