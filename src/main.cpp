@@ -159,7 +159,7 @@ int main(int argc, char** argv) {
   std::string inputFilename = std::string(argv[1]);
   std::string outputFilename = std::string(argv[2]);
   if(inputFilename == outputFilename) {
-    log.error("usage: avif-decoder <filename>.avif <filename>.{bmp, png}");
+    log.error("usage: davif <filename>.avif <filename>.{bmp, png}");
     return -1;
   }
 
