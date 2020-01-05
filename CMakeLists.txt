@@ -70,8 +70,8 @@ include_directories(${CMAKE_BINARY_DIR}/include)
 
 add_executable(davif
         src/main.cpp
-        src/util/StreamWriter.hpp
-        src/util/StreamWriter.cpp
+        external/libavif-container/src/avif/util/StreamWriter.hpp
+        external/libavif-container/src/avif/util/StreamWriter.cpp
         src/util/File.cpp
         src/util/File.h
         )

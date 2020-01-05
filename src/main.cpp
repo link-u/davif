@@ -8,9 +8,9 @@
 
 #include <avif/Parser.hpp>
 #include <avif/util/FileLogger.hpp>
+#include <avif/util/StreamWriter.hpp>
 
 #include "util/File.h"
-#include "util/StreamWriter.hpp"
 #include "../external/clipp/include/clipp.h"
 
 namespace {
@@ -106,7 +106,7 @@ std::vector<uint8_t> convertToABGR(Dav1dPicture const& pic) {
 
 std::optional<std::string> writeBitmap(avif::util::Logger& log, std::string const& filename, std::vector<uint8_t> const& img, size_t const w, size_t const h) {
   static int const headerSize = 54;
-  util::StreamWriter bmp;
+  avif::util::StreamWriter bmp;
   // BMP header
   bmp.putU16L(0x4d42);
   bmp.putU32L(img.size() + headerSize);
@@ -132,7 +132,7 @@ std::optional<std::string> writeBitmap(avif::util::Logger& log, std::string cons
 }
 
 void png_write_callback(png_structp  png_ptr, png_bytep data, png_size_t length) {
-  auto buff = reinterpret_cast<util::StreamWriter*>(png_get_io_ptr(png_ptr));
+  auto buff = reinterpret_cast<avif::util::StreamWriter*>(png_get_io_ptr(png_ptr));
   buff->append(data, length);
 }
 
@@ -152,7 +152,7 @@ std::optional<std::string> writePNG(avif::util::Logger& log, std::string const& 
     rows[y] = img.data() + (stride * y);
   }
   png_set_rows(p, info_ptr, rows.data());
-  util::StreamWriter out;
+  avif::util::StreamWriter out;
   png_set_write_fn(p, &out, png_write_callback, nullptr);
   png_write_png(p, info_ptr, PNG_TRANSFORM_IDENTITY, nullptr);
   png_destroy_write_struct(&p, nullptr);
