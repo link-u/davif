@@ -6,11 +6,12 @@
 #include <libyuv.h>
 #include <png.h>
 
-#include <avif/Parser.hpp>
+#include <avif/util/File.hpp>
+#include <avif/util/Logger.hpp>
 #include <avif/util/FileLogger.hpp>
 #include <avif/util/StreamWriter.hpp>
+#include <avif/Parser.hpp>
 
-#include "util/File.h"
 #include "../external/clipp/include/clipp.h"
 
 namespace {
@@ -127,7 +128,7 @@ std::optional<std::string> writeBitmap(avif::util::Logger& log, std::string cons
   bmp.putU32L(0);
   bmp.putU32L(0);
   bmp.append(img);
-  auto result = util::writeFile(filename, bmp.buffer());
+  auto result = avif::util::writeFile(filename, bmp.buffer());
   return std::move(result);
 }
 
@@ -156,7 +157,7 @@ std::optional<std::string> writePNG(avif::util::Logger& log, std::string const& 
   png_set_write_fn(p, &out, png_write_callback, nullptr);
   png_write_png(p, info_ptr, PNG_TRANSFORM_IDENTITY, nullptr);
   png_destroy_write_struct(&p, nullptr);
-  auto result = util::writeFile(filename, out.buffer());
+  auto result = avif::util::writeFile(filename, out.buffer());
   return std::move(result);
 }
 
@@ -195,7 +196,7 @@ int main(int argc, char** argv) {
   }
 
   // Read file.
-  std::variant<std::vector<uint8_t>, std::string> avif_data = util::readFile(inputFilename);
+  std::variant<std::vector<uint8_t>, std::string> avif_data = avif::util::readFile(inputFilename);
   if(std::holds_alternative<std::string>(avif_data)){
     log.error("%s\n", std::get<1>(avif_data));
     return -1;

@@ -68,13 +68,7 @@ link_directories(${CMAKE_BINARY_DIR}/lib)
 include_directories(${CMAKE_BINARY_DIR}/include)
 ###############################################################################
 
-add_executable(davif
-        src/main.cpp
-        external/libavif-container/src/avif/util/StreamWriter.hpp
-        external/libavif-container/src/avif/util/StreamWriter.cpp
-        src/util/File.cpp
-        src/util/File.h
-        )
+add_executable(davif src/main.cpp)
 
 add_dependencies(davif dav1d_repo)
 target_link_libraries(davif libavif-container)
