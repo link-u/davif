@@ -8,7 +8,7 @@ avif decoder, using dav1d directly.
 davif -i <input.avif> -o <output.{bmp, png}>
 ```
 
-Example avif files are available in [AOMediaCodec/av1-avif](https://github.com/AOMediaCodec/av1-avif/tree/master/testFiles).
+Example avif files are available in [AOMediaCodec/av1-avif](https://github.com/AOMediaCodec/av1-avif/tree/master/testFiles) or [link-u/avif-sample-images](https://github.com/link-u/avif-sample-images).
 
 ## how to build
 
