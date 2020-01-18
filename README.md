@@ -31,12 +31,13 @@ SYNOPSIS
 ./davif -i input.avif -o output.png
 ```
 
-## limitations
+## TODO
 
- - Not supported:
+ - Support:
    - Alpha channel(Auxially images)
    - Color profiles
    - HDR images.
+ - Add more and more command-line flags.
 
 # Related repositories
 
