@@ -40,4 +40,6 @@ SYNOPSIS
 
 # Related repositories
 
+ - [link-u/cavif](https://github.com/link-u/cavif) - avif encoder, using libaom directly.
  - [link-u/libavif-container](https://github.com/link-u/libavif-container) - a library to parse avif container.
+ - [link-u/avif-sample-images](https://github.com/link-u/avif-sample-images) - sample images from us.
