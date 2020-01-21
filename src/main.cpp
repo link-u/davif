@@ -105,33 +105,6 @@ std::vector<uint8_t> convertToABGR(Dav1dPicture const& pic) {
   return std::move(rotated);
 }
 
-std::optional<std::string> writeBitmap(avif::util::Logger& log, std::string const& filename, std::vector<uint8_t> const& img, size_t const w, size_t const h) {
-  static int const headerSize = 54;
-  avif::util::StreamWriter bmp;
-  // BMP header
-  bmp.putU16L(0x4d42);
-  bmp.putU32L(img.size() + headerSize);
-  bmp.putU16L(0);
-  bmp.putU16L(0);
-  bmp.putU32L(headerSize);
-
-  // DIB header
-  bmp.putU32L(40);
-  bmp.putU32L(w);
-  bmp.putU32L(-h >> 0u);
-  bmp.putU16L(1);
-  bmp.putU16L(32); //ARGB
-  bmp.putU32L(0);
-  bmp.putU32L(img.size());
-  bmp.putU32L(2835);
-  bmp.putU32L(2835);
-  bmp.putU32L(0);
-  bmp.putU32L(0);
-  bmp.append(img);
-  auto result = avif::util::writeFile(filename, bmp.buffer());
-  return std::move(result);
-}
-
 void png_write_callback(png_structp  png_ptr, png_bytep data, png_size_t length) {
   auto buff = reinterpret_cast<avif::util::StreamWriter*>(png_get_io_ptr(png_ptr));
   buff->append(data, length);
@@ -170,7 +143,7 @@ int main(int argc, char** argv) {
     using namespace clipp;
     auto cli = (
         required("-i", "--input") & value("input.avif", inputFilename),
-        required("-o", "--output") & value("output.{bmp, png}", outputFilename)
+        required("-o", "--output") & value("output.png", outputFilename)
     );
     if(!parse(argc, argv, cli)) {
       std::cerr << make_man_page(cli, basename(std::string(argv[0])));
@@ -237,14 +210,7 @@ int main(int argc, char** argv) {
 
   // Write to file.
 
-  if(endsWidh(outputFilename, ".bmp")) {
-    std::vector<uint8_t> buff = convertToARGB(pic);
-    auto result = writeBitmap(log, outputFilename, buff, pic.p.w, pic.p.h);
-    if(result.has_value()){
-      log.error("Failed to write Bitmap: %s", result.value());
-      return -1;
-    }
-  } else if(endsWidh(outputFilename, ".png")) {
+  if(endsWidh(outputFilename, ".png")) {
     std::vector<uint8_t> buff = convertToABGR(pic);
     auto result = writePNG(log, outputFilename, buff, pic.p.w, pic.p.h);
     if(result.has_value()){
