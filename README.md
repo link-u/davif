@@ -25,7 +25,7 @@ make
 # show usage
 ./davif
 SYNOPSIS
-        davif -i <input.avif> -o <output.{bmp, png}>
+        davif -i <input.avif> -o <output.png>
 
 # decode an avif image.
 ./davif -i input.avif -o output.png
