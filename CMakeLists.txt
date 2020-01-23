@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.10)
+cmake_minimum_required(VERSION 3.13)
 project(davif)
 
 set(CMAKE_CXX_STANDARD 17)
@@ -6,24 +6,31 @@ set(CMAKE_CXX_FLAGS_DEBUG "-g3 -O0 -fno-omit-frame-pointer")
 
 ###############################################################################
 add_subdirectory(external/libavif-container EXCLUDE_FROM_ALL)
-include_directories(external/libavif-container/src)
 ###############################################################################
 add_subdirectory(external/libyuv EXCLUDE_FROM_ALL)
-include_directories(external/libyuv/include)
 ###############################################################################
-set(SKIP_INSTALL_ALL ON)
-set(ZLIB_TESTS OFF BOOL)
+# zlib
+set(ASM686L OFF CACHE BOOL "Enable building i686 assembly implementation" FORCE)
+set(ASM686 OFF CACHE BOOL "Enable building amd64 assembly implementation" FORCE)
 add_subdirectory(external/zlib EXCLUDE_FROM_ALL)
-include_directories(external/zlib)
+set(ZLIB_INCLUDE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/external/zlib" "${CMAKE_CURRENT_BINARY_DIR}/external/zlib")
+set(ZLIB_ROOT "${CMAKE_BINARY_DIR}/zlib")
+set(ZLIB_DIR "${CMAKE_BINARY_DIR}/zlib")
 ###############################################################################
 set(SKIP_INSTALL_ALL ON)
+
+set(PNG_BUILD_ZLIB ON CACHE BOOL "Custom zlib Location, else find_package is used" FORCE)
 set(PNG_SHARED OFF CACHE BOOL "Build shared lib" FORCE)
 set(PNG_STATIC ON CACHE BOOL "Build static lib" FORCE)
 set(PNG_TESTS OFF CACHE BOOL "Build libpng tests" FORCE)
 add_subdirectory(external/libpng EXCLUDE_FROM_ALL)
 #FIXME(ledyba-z): Workaround to include "pnglibconf.h"
-target_include_directories(png_static PUBLIC ${CMAKE_CURRENT_BINARY_DIR}/external/libpng)
-include_directories(external/libpng)
+target_include_directories(png_static PUBLIC "${CMAKE_CURRENT_BINARY_DIR}/external/libpng")
+# zlib
+target_link_directories(png_static PRIVATE "${CMAKE_CURRENT_BINARY_DIR}/external/zlib")
+target_include_directories(png_static PRIVATE external/zlib)
+target_link_libraries(png_static zlibstatic)
+add_dependencies(png_static zlibstatic)
 ###############################################################################
 include(ExternalProject)
 ###############################################################################
@@ -64,13 +71,18 @@ ELSE()
             INSTALL_COMMAND ninja install -C "${CMAKE_BINARY_DIR}/build-dav1d"
             )
 ENDIF()
-link_directories(${CMAKE_BINARY_DIR}/lib)
-include_directories(${CMAKE_BINARY_DIR}/include)
 ###############################################################################
 
 add_executable(davif src/main.cpp)
 
 add_dependencies(davif dav1d_repo)
+
+target_include_directories(davif PRIVATE external/libpng)
+target_include_directories(davif PRIVATE "${CMAKE_BINARY_DIR}/include")
+target_include_directories(davif PRIVATE external/libavif-container/src)
+target_include_directories(davif PRIVATE external/libyuv/include)
+target_link_directories(davif PRIVATE "${CMAKE_BINARY_DIR}/lib")
+
 target_link_libraries(davif libavif-container)
 target_link_libraries(davif yuv)
 target_link_libraries(davif zlibstatic)
