@@ -187,10 +187,14 @@ int main(int argc, char** argv) {
   // start decoding
   Dav1dData data{};
   Dav1dPicture pic{};
+  size_t itemID = 0;
+  if(fileBox.metaBox.primaryItemBox.has_value()) {
+    itemID = fileBox.metaBox.primaryItemBox.value().itemID - 1;
+  }
   // FIXME(ledyba-z): handle multiple pixtures
-  size_t const baseOffset = fileBox.metaBox.itemLocationBox.items[0].baseOffset;
-  size_t const extentOffset = fileBox.metaBox.itemLocationBox.items[0].extents[0].extentOffset;
-  size_t const extentLength = fileBox.metaBox.itemLocationBox.items[0].extents[0].extentLength;
+  size_t const baseOffset = fileBox.metaBox.itemLocationBox.items[itemID].baseOffset;
+  size_t const extentOffset = fileBox.metaBox.itemLocationBox.items[itemID].extents[0].extentOffset;
+  size_t const extentLength = fileBox.metaBox.itemLocationBox.items[itemID].extents[0].extentLength;
   auto const buffBegin = res->buffer().data();
   auto const imgBegin = std::next(buffBegin, baseOffset + extentOffset);
   auto const imgEnd = std::next(imgBegin, extentLength);
