@@ -5,7 +5,7 @@ avif decoder, using dav1d directly.
 ## usage
 
 ```bash
-davif -i <input.avif> -o <output.{bmp, png}>
+davif -i <input.avif> -o <output.png>
 ```
 
 Example avif files are available in [AOMediaCodec/av1-avif](https://github.com/AOMediaCodec/av1-avif/tree/master/testFiles) or [link-u/avif-sample-images](https://github.com/link-u/avif-sample-images).
