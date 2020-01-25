@@ -43,7 +43,7 @@ IF(CMAKE_BUILD_TYPE MATCHES Release)
             --default-library static
             --buildtype=release
             -Denable_asm=true
-            --optimization=3
+	    #-optimization=3
             "${CMAKE_SOURCE_DIR}/external/dav1d"
             "${CMAKE_BINARY_DIR}/build-dav1d"
             BUILD_COMMAND ninja -C "${CMAKE_BINARY_DIR}/build-dav1d"
@@ -61,7 +61,7 @@ ELSE()
             --default-library static
             --buildtype=debug
             -Denable_asm=false
-            --optimization=g
+	    #--optimization=g
             "${CMAKE_SOURCE_DIR}/external/dav1d"
             "${CMAKE_BINARY_DIR}/build-dav1d"
             BUILD_COMMAND ninja -C "${CMAKE_BINARY_DIR}/build-dav1d"
@@ -86,3 +86,10 @@ target_link_libraries(davif zlibstatic)
 target_link_libraries(davif png_static)
 target_link_libraries(davif dav1d)
 target_link_libraries(davif pthread)
+
+###############################################################################
+
+install(TARGETS davif
+    RUNTIME DESTINATION bin
+)
+

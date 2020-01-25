@@ -1,0 +1,15 @@
+Source: davif
+Section: unknown
+Priority: optional
+Maintainer: Ryo Hirafuji <ryo.hirafuji@link-u.co.jp>
+Build-Depends: debhelper (>= 10), cmake (>= 3.13), gcc-8, g++-8, libgcc-8-dev, libstdc++-8-dev, yasm, python3-pip
+Standards-Version: 4.1.2
+Homepage: https://github.com/link-u/davif
+Vcs-Git: https://github.com/link-u/davif.git
+Vcs-Browser: https://github.com/link-u/davif
+
+Package: davif
+Architecture: any
+Depends: ${shlibs:Depends}, ${misc:Depends}
+Description: <insert up to 60 chars description>
+ <insert long description, indented with spaces>
