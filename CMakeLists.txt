@@ -7,8 +7,6 @@ set(CMAKE_CXX_FLAGS_DEBUG "-g3 -O0 -fno-omit-frame-pointer")
 ###############################################################################
 add_subdirectory(external/libavif-container EXCLUDE_FROM_ALL)
 ###############################################################################
-add_subdirectory(external/libyuv EXCLUDE_FROM_ALL)
-###############################################################################
 # zlib
 set(ASM686L OFF CACHE BOOL "Enable building i686 assembly implementation" FORCE)
 set(ASM686 OFF CACHE BOOL "Enable building amd64 assembly implementation" FORCE)
@@ -84,7 +82,6 @@ target_include_directories(davif PRIVATE external/libyuv/include)
 target_link_directories(davif PRIVATE "${CMAKE_BINARY_DIR}/lib")
 
 target_link_libraries(davif libavif-container)
-target_link_libraries(davif yuv)
 target_link_libraries(davif zlibstatic)
 target_link_libraries(davif png_static)
 target_link_libraries(davif dav1d)

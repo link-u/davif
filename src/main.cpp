@@ -3,7 +3,6 @@
 #include <optional>
 
 #include <dav1d/dav1d.h>
-#include <libyuv.h>
 #include <png.h>
 
 #include <avif/util/File.hpp>
