@@ -36,7 +36,6 @@ SYNOPSIS
  - Support:
    - Alpha channel(Auxially images)
    - Color profiles
-   - HDR images.
  - Add more and more command-line flags.
 
 # Related repositories

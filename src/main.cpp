@@ -11,6 +11,10 @@
 #include <avif/util/FileLogger.hpp>
 #include <avif/util/StreamWriter.hpp>
 #include <avif/Parser.hpp>
+#include <avif/img/Image.hpp>
+#include <avif/img/Conversion.hpp>
+#include <avif/img/Crop.hpp>
+#include <avif/img/Transform.hpp>
 
 #include "../external/clipp/include/clipp.h"
 
@@ -34,75 +38,60 @@ std::string basename(std::string const& path) {
 void nop_free_callback(const uint8_t *buf, void *cookie) {
 }
 
-std::vector<uint8_t> convertToARGB(Dav1dPicture const& pic) {
-  int const w = pic.p.w;
-  int const h = pic.p.h;
-  int const stride = w*4;
-  std::vector<uint8_t> img;
-  img.resize(stride * h);
-
-  switch(pic.p.layout) {
-    case DAV1D_PIXEL_LAYOUT_I400: { ///< monochrome
-      libyuv::I400ToARGB(
-          reinterpret_cast<const uint8_t *>(pic.data[0]),
-          pic.stride[0],
-          img.data(),
-          stride,
-          w, h);
-      break;
+std::variant<avif::img::Image<8>, avif::img::Image<16>> convertToRGB(Dav1dPicture& pic) {
+  std::variant<avif::img::Image<8>, avif::img::Image<16>> result;
+  switch(pic.p.bpc) {
+    case 8: {
+      avif::img::Image<8> img = avif::img::Image<8>::createEmptyImage(avif::img::PixelOrder::RGB, pic.p.w, pic.p.h);
+      switch(pic.p.layout) {
+        case DAV1D_PIXEL_LAYOUT_I400:
+        case DAV1D_PIXEL_LAYOUT_I420:
+          avif::img::ToRGB<8, 8>().fromI420(img, reinterpret_cast<uint8_t*>(pic.data[0]), pic.stride[0], reinterpret_cast<uint8_t*>(pic.data[1]), pic.stride[1], reinterpret_cast<uint8_t*>(pic.data[2]), pic.stride[1]);
+          break;
+        case DAV1D_PIXEL_LAYOUT_I422:
+          avif::img::ToRGB<8, 8>().fromI422(img, reinterpret_cast<uint8_t*>(pic.data[0]), pic.stride[0], reinterpret_cast<uint8_t*>(pic.data[1]), pic.stride[1], reinterpret_cast<uint8_t*>(pic.data[2]), pic.stride[1]);
+          break;
+        case DAV1D_PIXEL_LAYOUT_I444:
+          avif::img::ToRGB<8, 8>().fromI444(img, reinterpret_cast<uint8_t*>(pic.data[0]), pic.stride[0], reinterpret_cast<uint8_t*>(pic.data[1]), pic.stride[1], reinterpret_cast<uint8_t*>(pic.data[2]), pic.stride[1]);
+          break;
+      }
+      return img;
     }
-    case DAV1D_PIXEL_LAYOUT_I420: { ///< 4:2:0 planar
-      libyuv::I420ToARGB(
-          reinterpret_cast<const uint8_t *>(pic.data[0]),
-          pic.stride[0],
-          reinterpret_cast<const uint8_t *>(pic.data[1]),
-          pic.stride[1],
-          reinterpret_cast<const uint8_t *>(pic.data[2]),
-          pic.stride[1],
-          img.data(),
-          stride,
-          w, h);
-      break;
+    case 10: {
+      avif::img::Image<16> img = avif::img::Image<16>::createEmptyImage(avif::img::PixelOrder::RGB, pic.p.w, pic.p.h);
+      switch(pic.p.layout) {
+        case DAV1D_PIXEL_LAYOUT_I400:
+        case DAV1D_PIXEL_LAYOUT_I420:
+          avif::img::ToRGB<16, 10>().fromI420(img, reinterpret_cast<uint8_t*>(pic.data[0]), pic.stride[0], reinterpret_cast<uint8_t*>(pic.data[1]), pic.stride[1], reinterpret_cast<uint8_t*>(pic.data[2]), pic.stride[1]);
+          break;
+        case DAV1D_PIXEL_LAYOUT_I422:
+          avif::img::ToRGB<16, 10>().fromI422(img, reinterpret_cast<uint8_t*>(pic.data[0]), pic.stride[0], reinterpret_cast<uint8_t*>(pic.data[1]), pic.stride[1], reinterpret_cast<uint8_t*>(pic.data[2]), pic.stride[1]);
+          break;
+        case DAV1D_PIXEL_LAYOUT_I444:
+          avif::img::ToRGB<16, 10>().fromI444(img, reinterpret_cast<uint8_t*>(pic.data[0]), pic.stride[0], reinterpret_cast<uint8_t*>(pic.data[1]), pic.stride[1], reinterpret_cast<uint8_t*>(pic.data[2]), pic.stride[1]);
+          break;
+      }
+      return img;
     }
-    case DAV1D_PIXEL_LAYOUT_I422: { ///< 4:2:2 planar
-      libyuv::I422ToARGB(
-          reinterpret_cast<const uint8_t *>(pic.data[0]),
-          pic.stride[0],
-          reinterpret_cast<const uint8_t *>(pic.data[1]),
-          pic.stride[1],
-          reinterpret_cast<const uint8_t *>(pic.data[2]),
-          pic.stride[1],
-          img.data(),
-          stride,
-          w, h);
-      break;
+    case 12: {
+      avif::img::Image<16> img = avif::img::Image<16>::createEmptyImage(avif::img::PixelOrder::RGB, pic.p.w, pic.p.h);
+      switch(pic.p.layout) {
+        case DAV1D_PIXEL_LAYOUT_I400:
+        case DAV1D_PIXEL_LAYOUT_I420:
+          avif::img::ToRGB<16, 12>().fromI420(img, reinterpret_cast<uint8_t*>(pic.data[0]), pic.stride[0], reinterpret_cast<uint8_t*>(pic.data[1]), pic.stride[1], reinterpret_cast<uint8_t*>(pic.data[2]), pic.stride[1]);
+          break;
+        case DAV1D_PIXEL_LAYOUT_I422:
+          avif::img::ToRGB<16, 12>().fromI422(img, reinterpret_cast<uint8_t*>(pic.data[0]), pic.stride[0], reinterpret_cast<uint8_t*>(pic.data[1]), pic.stride[1], reinterpret_cast<uint8_t*>(pic.data[2]), pic.stride[1]);
+          break;
+        case DAV1D_PIXEL_LAYOUT_I444:
+          avif::img::ToRGB<16, 12>().fromI444(img, reinterpret_cast<uint8_t*>(pic.data[0]), pic.stride[0], reinterpret_cast<uint8_t*>(pic.data[1]), pic.stride[1], reinterpret_cast<uint8_t*>(pic.data[2]), pic.stride[1]);
+          break;
+      }
+      return img;
     }
-    case DAV1D_PIXEL_LAYOUT_I444: { ///< 4:4:4 planar
-      libyuv::I444ToARGB(
-          reinterpret_cast<const uint8_t *>(pic.data[0]),
-          pic.stride[0],
-          reinterpret_cast<const uint8_t *>(pic.data[1]),
-          pic.stride[1],
-          reinterpret_cast<const uint8_t *>(pic.data[2]),
-          pic.stride[1],
-          img.data(),
-          stride,
-          w, h);
-      break;
-    }
+    default:
+      throw std::runtime_error(tfm::format("Unknwon bpc=%d", pic.p.bpc));
   }
-  return std::move(img);
-}
-
-std::vector<uint8_t> convertToABGR(Dav1dPicture const& pic) {
-  int const w = pic.p.w;
-  int const h = pic.p.h;
-  int const stride = w*4;
-  std::vector<uint8_t> orig = convertToARGB(pic);
-  std::vector<uint8_t> rotated;
-  rotated.resize(orig.size());
-  libyuv::ARGBToABGR(orig.data(), stride, rotated.data(), stride, w, h);
-  return std::move(rotated);
 }
 
 void png_write_callback(png_structp  png_ptr, png_bytep data, png_size_t length) {
@@ -110,33 +99,100 @@ void png_write_callback(png_structp  png_ptr, png_bytep data, png_size_t length)
   buff->append(data, length);
 }
 
-std::optional<std::string> writePNG(avif::util::Logger& log, std::string const& filename, std::vector<uint8_t>& img, int w, int h) {
+template <size_t BitsPerComponent>
+std::optional<std::string> writePNG(avif::util::Logger& log, std::string const& filename, avif::img::Image<BitsPerComponent>& img) {
   //FIXME(ledyba-z): add error handling
+  const size_t w = img.width();
+  const size_t h = img.height();
+  const size_t stride = img.stride();
   png_structp p = png_create_write_struct(PNG_LIBPNG_VER_STRING, nullptr, nullptr, nullptr);
   png_infop info_ptr = png_create_info_struct(p);
-  png_set_IHDR(p, info_ptr, w, h, 8,
-               PNG_COLOR_TYPE_RGBA,
+  png_set_IHDR(p, info_ptr, w, h, BitsPerComponent,
+               img.pixelOrder() == avif::img::PixelOrder::RGBA ? PNG_COLOR_TYPE_RGBA : PNG_COLOR_TYPE_RGB,
                PNG_INTERLACE_NONE,
                PNG_COMPRESSION_TYPE_DEFAULT,
                PNG_FILTER_TYPE_DEFAULT);
   std::vector<uint8_t *> rows;
   rows.resize(h);
-  int const stride = w * 4;
   for(int y = 0; y < h; ++y) {
     rows[y] = img.data() + (stride * y);
   }
   png_set_rows(p, info_ptr, rows.data());
   avif::util::StreamWriter out;
   png_set_write_fn(p, &out, png_write_callback, nullptr);
-  png_write_png(p, info_ptr, PNG_TRANSFORM_IDENTITY, nullptr);
+  png_write_png(p, info_ptr, BitsPerComponent == 16 ? PNG_TRANSFORM_SWAP_ENDIAN : PNG_TRANSFORM_IDENTITY, nullptr);
   png_destroy_write_struct(&p, nullptr);
   auto result = avif::util::writeFile(filename, out.buffer());
   return std::move(result);
 }
 
+template <typename T>
+std::optional<T> findBox(avif::FileBox const& fileBox, uint32_t itemID) {
+  for(auto const& assoc : fileBox.metaBox.itemPropertiesBox.associations){
+    for(auto const& item : assoc.items) {
+      if(item.itemID != itemID) {
+        continue;
+      }
+      for(auto const& entry : item.entries) {
+        if(entry.propertyIndex == 0) {
+          continue;
+        }
+        auto& prop = fileBox.metaBox.itemPropertiesBox.propertyContainers.properties.at(entry.propertyIndex - 1);
+        if(std::holds_alternative<T>(prop)){
+          return std::get<T>(prop);
+        }
+      }
+    }
+  }
+  return std::optional<T>();
 }
 
+template <size_t BitsPerComponent>
+avif::img::Image<BitsPerComponent> applyTransform(avif::img::Image<BitsPerComponent> img, avif::FileBox const& fileBox) {
+  uint32_t itemID = 1;
+  if(fileBox.metaBox.primaryItemBox.has_value()) {
+    itemID = fileBox.metaBox.primaryItemBox.value().itemID;
+  }
+  std::optional<avif::CleanApertureBox> clap = findBox<avif::CleanApertureBox>(fileBox, itemID);
+  std::optional<avif::ImageRotationBox> irot = findBox<avif::ImageRotationBox>(fileBox, itemID);
+  std::optional<avif::ImageMirrorBox> imir = findBox<avif::ImageMirrorBox>(fileBox, itemID);
+  if(!clap.has_value() && !irot.has_value() && !imir.has_value()) {
+    return std::move(img);
+  }
+  // ISO/IEC 23000-22:2019(E)
+  // p.16
+  // These properties, if used, shall be indicated to be applied in the following order:
+  //  clean aperture first,
+  //  then rotation,
+  //  then mirror.
+  if(clap.has_value()) {
+    img = avif::img::crop(img, clap.value());
+  }
+  if(irot.has_value()) {
+    img = avif::img::rotate(img, irot.value().angle);
+  }
+  if(imir.has_value()) {
+    img = avif::img::flip(img, imir.value().axis);
+  }
+  return std::move(img);
+}
+
+
+}
+
+static int _main(int argc, char** argv);
+
 int main(int argc, char** argv) {
+  try {
+    return _main(argc, argv);
+  } catch (std::exception& err) {
+    fprintf(stderr, "%s\n", err.what());
+    fflush(stderr);
+    return -1;
+  }
+}
+
+int _main(int argc, char** argv) {
   std::string inputFilename = {};
   std::string outputFilename = {};
   {
@@ -164,23 +220,20 @@ int main(int argc, char** argv) {
   Dav1dContext* ctx{};
   int err = dav1d_open(&ctx, &settings);
   if(err != 0) {
-    log.error("Failed to open dav1d: %d\n", err);
-    return -1;
+    log.fatal("Failed to open dav1d: %d\n", err);
   }
 
   // Read file.
   std::variant<std::vector<uint8_t>, std::string> avif_data = avif::util::readFile(inputFilename);
   if(std::holds_alternative<std::string>(avif_data)){
-    log.error("%s\n", std::get<1>(avif_data));
-    return -1;
+    log.fatal("%s\n", std::get<1>(avif_data));
   }
 
   // parse ISOBMFF
   avif::Parser parser(log, std::move(std::get<0>(avif_data)));
   std::shared_ptr<avif::Parser::Result> res = parser.parse();
   if(!res->ok()){
-    log.error("Failed to parse %s as avif: %s\n", inputFilename, res->error());
-    return -1;
+    log.fatal("Failed to parse %s as avif: %s\n", inputFilename, res->error());
   }
   avif::FileBox const& fileBox = res->fileBox();
 
@@ -214,16 +267,18 @@ int main(int argc, char** argv) {
 
   // Write to file.
 
-  if(endsWidh(outputFilename, ".png")) {
-    std::vector<uint8_t> buff = convertToABGR(pic);
-    auto result = writePNG(log, outputFilename, buff, pic.p.w, pic.p.h);
-    if(result.has_value()){
-      log.error("Failed to write PNG: %s", result.value());
-      return -1;
-    }
+  if(!endsWidh(outputFilename, ".png")) {
+    log.fatal("please give png file for output");
+  }
+  std::variant<avif::img::Image<8>, avif::img::Image<16>> encoded = convertToRGB(pic);
+  if(std::holds_alternative<avif::img::Image<8>>(encoded)) {
+    auto& img = std::get<avif::img::Image<8>>(encoded);
+    img = applyTransform(std::move(img), fileBox);
+    writePNG(log, outputFilename, img);
   } else {
-    log.error("Unknown file extension: %s", outputFilename);
-    return -1;
+    auto& img = std::get<avif::img::Image<16>>(encoded);
+    img = applyTransform(std::move(img), fileBox);
+    writePNG(log, outputFilename, img);
   }
 
   dav1d_picture_unref(&pic);
