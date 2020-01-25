@@ -175,8 +175,6 @@ avif::img::Image<BitsPerComponent> applyTransform(avif::img::Image<BitsPerCompon
   }
   return std::move(img);
 }
-
-
 }
 
 static int _main(int argc, char** argv);
