@@ -1,5 +1,7 @@
 #! /bin/bash
 set -e
+
+# FIXME(ledyba-z): How about using venv?
 pip3 install meson ninja --user
 export PATH="$(python3 -c 'import site; print(site.USER_BASE);')/bin:${PATH}"
 
