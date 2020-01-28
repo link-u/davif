@@ -24,7 +24,9 @@ jobs:
       shell: bash
       run: |
         sudo apt install -y gcc-8 g++-8 yasm python3-pip python3-setuptools
-        pip3 install meson ninja
+        pip3 install wheel
+        pip3 install meson
+        pip3 install ninja
     - name: configure
       run: CXX=g++-8 CC=gcc-8 cmake -S . -B build
     - name: make
