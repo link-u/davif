@@ -41,7 +41,7 @@ jobs:
       run: |
         source venv/bin/activate
         if [ "${EVENT}" -eq "tags" ]; then
-          sed -i -r "s/^(\w+) \(([0-9\.]+)(-[A-Z]+)?\)/\1 (${REF:1})/" debian/changelog
+          sed -i -r "s/^(\w+) \(([0-9\.]+)(-[A-Z]+)?\)/\1 (${REF:11})/" debian/changelog
         else
           sed -i -r "s/^(\w+) \(([0-9\.]+)(-[A-Z]+)?\)/\1 (\2-${COMMIT:0:7})/" debian/changelog
         fi
@@ -57,7 +57,7 @@ jobs:
         name: davif
         path: ${{ steps.get_deb_name.outputs.filename }}
   release:
-    if: github.event_name == 'tags'
+    if: startsWith(github.ref, 'refs/tags/v')
     needs: build
     runs-on: ubuntu-18.04
     steps:
