@@ -42,7 +42,7 @@ jobs:
         if [ "${REF:0:11}" = "refs/tags/v" ]; then
           sed -i -r "s/^(\w+) \(([0-9\.]+)(-[A-Z]+)?\)/\1 (${REF:11})/" debian/changelog
         else
-          sed -i -r "s/^(\w+) \(([0-9\.]+)(-[A-Z]+)?\)/\1 (\2-${COMMIT:0:7})/" debian/changelog
+          sed -i -r "s/^(\w+) \(([0-9\.]+)(-[A-Z]+)?\)/\1 (\2-$(date +%Y%m%d%H%M%S)${COMMIT:0:7})/" debian/changelog
         fi
         bash scripts/build-debian-package.sh
     - name: Get debian package name.
