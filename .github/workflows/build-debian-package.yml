@@ -37,10 +37,10 @@ jobs:
       env:
         REF: ${{ github.ref }}
         COMMIT: ${{ github.sha }}
-        EVENT: ${{ github.event }}
+        EVENT: ${{ github.event_name }}
       run: |
         source venv/bin/activate
-        version="unknwon"
+        VERSION="unknwon"
         if [ "${EVENT}" -eq "tags" ]; then
           VERSION="${REF:1}"
         else
