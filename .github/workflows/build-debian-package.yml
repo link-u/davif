@@ -34,9 +34,12 @@ jobs:
       run: |
         source venv/bin/activate
         bash scripts/build-debian-package.sh
+    - name: get_deb_name
+      shell: bash
+      run: |
         echo "::set-output name=filename::$(basename $(find . -type f -name \*.deb))"
     - name: Upload result
       uses: actions/upload-artifact@v1
       with:
         name: davif
-        path: ${{ steps["build debian package"].outputs.filename }}
+        path: ${{ steps.get_deb_name.outputs.filename }}
