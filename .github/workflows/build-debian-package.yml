@@ -34,10 +34,19 @@ jobs:
         pip3 install ninja
     - name: build debian package
       shell: bash
+      env:
+        REF: ${{ github.ref }}
+        COMMIT: ${{ github.sha }}
+        EVENT: ${{ github.event }}
       run: |
         source venv/bin/activate
-        version = $(git describe --tags)
-        sed -i -r "s/^(\w+) \(([0-9\.]+)(-[A-Z]+)?\)/\1 (${version:1})/" debian/changelog
+        version="unknwon"
+        if [ "${EVENT}" -eq "tags" ]; then
+          VERSION="${REF:1}"
+        else
+          VERSION="${COMMIT:0:7}"
+        fi
+        sed -i -r "s/^(\w+) \(([0-9\.]+)(-[A-Z]+)?\)/\1 (${VERSION})/" debian/changelog
         bash scripts/build-debian-package.sh
     - name: Get debian package name.
       shell: bash
