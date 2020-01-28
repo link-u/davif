@@ -224,7 +224,7 @@ int _main(int argc, char** argv) {
   // Read file.
   std::variant<std::vector<uint8_t>, std::string> avif_data = avif::util::readFile(inputFilename);
   if(std::holds_alternative<std::string>(avif_data)){
-    log.fatal("%s\n", std::get<1>(avif_data));
+    log.fatal("Failed to open input: %s\n", std::get<1>(avif_data));
   }
 
   // parse ISOBMFF
@@ -267,7 +267,7 @@ int _main(int argc, char** argv) {
   // Write to file.
 
   if(!endsWidh(outputFilename, ".png")) {
-    log.fatal("please give png file for output");
+    log.fatal("Please give png file for output");
   }
   std::optional<std::string> writeResult;
   std::variant<avif::img::Image<8>, avif::img::Image<16>> encoded = convertToRGB(pic);
@@ -281,7 +281,7 @@ int _main(int argc, char** argv) {
     writeResult = writePNG(log, outputFilename, img);
   }
   if(writeResult.has_value()) {
-    log.fatal("failed to write PNG: %s", writeResult.value());
+    log.fatal("Failed to write PNG: %s", writeResult.value());
   }
 
   dav1d_picture_unref(&pic);
