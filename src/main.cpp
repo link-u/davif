@@ -209,7 +209,8 @@ int _main(int argc, char** argv) {
   }
 
   avif::util::FileLogger log(stdout, stderr, avif::util::Logger::DEBUG);
-  log.debug("dav1d: %s", dav1d_version());
+  log.info("davif");
+  log.debug("dav1d ver: %s", dav1d_version());
 
   // Init dav1d
   Dav1dSettings settings{};
@@ -234,6 +235,7 @@ int _main(int argc, char** argv) {
   }
   avif::FileBox const& fileBox = res->fileBox();
 
+  log.info(" - Loaded: %s", inputFilename);
   // start decoding
   Dav1dData data{};
   Dav1dPicture pic{};
@@ -277,6 +279,7 @@ int _main(int argc, char** argv) {
     img = applyTransform(std::move(img), fileBox);
     writePNG(log, outputFilename, img);
   }
+  log.info(" - Decoded: %s", outputFilename);
 
   dav1d_picture_unref(&pic);
   dav1d_close(&ctx);
