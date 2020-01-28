@@ -24,13 +24,19 @@ jobs:
       shell: bash
       run: |
         sudo apt install -y gcc-8 g++-8 yasm python3-pip python3-setuptools
+        python3 -m venv venv
+        source venv/bin/activate
         pip3 install wheel
         pip3 install meson
         pip3 install ninja
     - name: configure
-      run: CXX=g++-8 CC=gcc-8 cmake -S . -B build
+      run: |
+        source venv/bin/activate
+        CXX=g++-8 CC=gcc-8 cmake -S . -B build
     - name: make
-      run: env --chdir build make
+      run: |
+        source venv/bin/activate
+        env --chdir build make
     - name: clear build dir.
       run: rm -Rrv build
     - name: build debian package
