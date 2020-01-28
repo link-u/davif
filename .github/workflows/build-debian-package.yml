@@ -1,4 +1,4 @@
-name: Just build on push.
+name:　Build debian package on push.
 
 on: [push]
 
