@@ -34,10 +34,11 @@ jobs:
       run: |
         source venv/bin/activate
         bash scripts/build-debian-package.sh
-    - name: get_deb_name
+    - name: Get debian package name.
       shell: bash
       run: |
         echo "::set-output name=filename::$(basename $(find . -type f -name \*.deb))"
+      id: get_deb_name
     - name: Upload result
       uses: actions/upload-artifact@v1
       with:
