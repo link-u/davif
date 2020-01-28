@@ -235,7 +235,7 @@ int _main(int argc, char** argv) {
   }
   avif::FileBox const& fileBox = res->fileBox();
 
-  log.info(" - Loaded: %s", inputFilename);
+  log.info("Decoding: %s -> %s", inputFilename, outputFilename);
   // start decoding
   Dav1dData data{};
   Dav1dPicture pic{};
@@ -269,17 +269,20 @@ int _main(int argc, char** argv) {
   if(!endsWidh(outputFilename, ".png")) {
     log.fatal("please give png file for output");
   }
+  std::optional<std::string> writeResult;
   std::variant<avif::img::Image<8>, avif::img::Image<16>> encoded = convertToRGB(pic);
   if(std::holds_alternative<avif::img::Image<8>>(encoded)) {
     auto& img = std::get<avif::img::Image<8>>(encoded);
     img = applyTransform(std::move(img), fileBox);
-    writePNG(log, outputFilename, img);
+    writeResult = writePNG(log, outputFilename, img);
   } else {
     auto& img = std::get<avif::img::Image<16>>(encoded);
     img = applyTransform(std::move(img), fileBox);
-    writePNG(log, outputFilename, img);
+    writeResult = writePNG(log, outputFilename, img);
   }
-  log.info(" - Decoded: %s", outputFilename);
+  if(writeResult.has_value()) {
+    log.fatal("failed to write PNG: %s", writeResult.value());
+  }
 
   dav1d_picture_unref(&pic);
   dav1d_close(&ctx);
