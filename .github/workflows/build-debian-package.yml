@@ -37,10 +37,9 @@ jobs:
       env:
         REF: ${{ github.ref }}
         COMMIT: ${{ github.sha }}
-        EVENT: ${{ github.event_name }}
       run: |
         source venv/bin/activate
-        if [ "${EVENT}" -eq "tags" ]; then
+        if [ "${REF:0:11}" -eq "refs/tags/v" ]; then
           sed -i -r "s/^(\w+) \(([0-9\.]+)(-[A-Z]+)?\)/\1 (${REF:11})/" debian/changelog
         else
           sed -i -r "s/^(\w+) \(([0-9\.]+)(-[A-Z]+)?\)/\1 (\2-${COMMIT:0:7})/" debian/changelog
