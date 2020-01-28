@@ -40,13 +40,11 @@ jobs:
         EVENT: ${{ github.event_name }}
       run: |
         source venv/bin/activate
-        VERSION="unknwon"
         if [ "${EVENT}" -eq "tags" ]; then
-          VERSION="${REF:1}"
+          sed -i -r "s/^(\w+) \(([0-9\.]+)(-[A-Z]+)?\)/\1 (${REF:1})/" debian/changelog
         else
-          VERSION="${COMMIT:0:7}"
+          sed -i -r "s/^(\w+) \(([0-9\.]+)(-[A-Z]+)?\)/\1 (\2-${COMMIT:0:7})/" debian/changelog
         fi
-        sed -i -r "s/^(\w+) \(([0-9\.]+)(-[A-Z]+)?\)/\1 (${VERSION})/" debian/changelog
         bash scripts/build-debian-package.sh
     - name: Get debian package name.
       shell: bash
