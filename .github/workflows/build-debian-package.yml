@@ -2,8 +2,10 @@ name: Build debian package on push or release-tags.
 
 on:
   push:
-  tags:
-    - v*
+    branches:
+      - master
+    tags:
+      - v*
 
 jobs:
   build:
