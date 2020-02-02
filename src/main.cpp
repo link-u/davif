@@ -14,6 +14,7 @@
 #include <avif/img/Conversion.hpp>
 #include <avif/img/Crop.hpp>
 #include <avif/img/Transform.hpp>
+#include <thread>
 
 #include "../external/clipp/include/clipp.h"
 
@@ -190,13 +191,24 @@ int main(int argc, char** argv) {
 }
 
 int _main(int argc, char** argv) {
+  avif::util::FileLogger log(stdout, stderr, avif::util::Logger::DEBUG);
+
+  log.info("davif");
+  log.debug("dav1d ver: %s", dav1d_version());
+
+  // Init dav1d
+  Dav1dSettings settings{};
+  dav1d_default_settings(&settings);
+  settings.n_tile_threads = static_cast<int>(std::thread::hardware_concurrency());
+
   std::string inputFilename = {};
   std::string outputFilename = {};
   {
     using namespace clipp;
     auto cli = (
         required("-i", "--input") & value("input.avif", inputFilename),
-        required("-o", "--output") & value("output.png", outputFilename)
+        required("-o", "--output") & value("output.png", outputFilename),
+        option("--threads") & integer("Num of threads to use", settings.n_tile_threads)
     );
     if(!parse(argc, argv, cli)) {
       std::cerr << make_man_page(cli, basename(std::string(argv[0])));
@@ -208,13 +220,6 @@ int _main(int argc, char** argv) {
     }
   }
 
-  avif::util::FileLogger log(stdout, stderr, avif::util::Logger::DEBUG);
-  log.info("davif");
-  log.debug("dav1d ver: %s", dav1d_version());
-
-  // Init dav1d
-  Dav1dSettings settings{};
-  dav1d_default_settings(&settings);
   Dav1dContext* ctx{};
   int err = dav1d_open(&ctx, &settings);
   if(err != 0) {
@@ -250,18 +255,24 @@ int _main(int argc, char** argv) {
   auto const buffBegin = res->buffer().data();
   auto const imgBegin = std::next(buffBegin, baseOffset + extentOffset);
   auto const imgEnd = std::next(imgBegin, extentLength);
-  dav1d_data_wrap(&data, imgBegin, std::distance(imgBegin, imgEnd), nop_free_callback, nullptr);
-  err = dav1d_send_data(ctx, &data);
+  {
+    auto start = std::chrono::steady_clock::now();
 
-  if(err < 0) {
-    log.error( "Failed to send data to dav1d: %d\n", err);
-    return -1;
-  }
+    dav1d_data_wrap(&data, imgBegin, std::distance(imgBegin, imgEnd), nop_free_callback, nullptr);
+    err = dav1d_send_data(ctx, &data);
 
-  err = dav1d_get_picture(ctx, &pic);
-  if (err < 0) {
-    log.error("Failed to decode dav1d: %d\n", err);
-    return -1;
+    if(err < 0) {
+      log.error( "Failed to send data to dav1d: %d\n", err);
+      return -1;
+    }
+
+    err = dav1d_get_picture(ctx, &pic);
+    if (err < 0) {
+      log.error("Failed to decode dav1d: %d\n", err);
+      return -1;
+    }
+    auto finish = std::chrono::steady_clock::now();
+    log.info("Decoded in %d [ms]", std::chrono::duration_cast<std::chrono::milliseconds>(finish-start).count());
   }
 
   // Write to file.
