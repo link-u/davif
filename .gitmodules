@@ -20,6 +20,3 @@
 [submodule "external/clipp"]
 	path = external/clipp
 	url = git@github.com:muellan/clipp.git
-[submodule "sample-images"]
-	path = sample-images
-	url = git@github.com:link-u/avif-sample-images.git
