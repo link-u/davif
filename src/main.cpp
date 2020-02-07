@@ -40,57 +40,112 @@ void nop_free_callback(const uint8_t *buf, void *cookie) {
 
 std::variant<avif::img::Image<8>, avif::img::Image<16>> convertToRGB(Dav1dPicture& pic) {
   std::variant<avif::img::Image<8>, avif::img::Image<16>> result;
-  switch(pic.p.bpc) {
-    case 8: {
-      avif::img::Image<8> img = avif::img::Image<8>::createEmptyImage(avif::img::PixelOrder::RGB, pic.p.w, pic.p.h);
-      switch(pic.p.layout) {
-        case DAV1D_PIXEL_LAYOUT_I400:
-        case DAV1D_PIXEL_LAYOUT_I420:
-          avif::img::ToRGB<8, 8>().fromI420(img, reinterpret_cast<uint8_t*>(pic.data[0]), pic.stride[0], reinterpret_cast<uint8_t*>(pic.data[1]), pic.stride[1], reinterpret_cast<uint8_t*>(pic.data[2]), pic.stride[1]);
-          break;
-        case DAV1D_PIXEL_LAYOUT_I422:
-          avif::img::ToRGB<8, 8>().fromI422(img, reinterpret_cast<uint8_t*>(pic.data[0]), pic.stride[0], reinterpret_cast<uint8_t*>(pic.data[1]), pic.stride[1], reinterpret_cast<uint8_t*>(pic.data[2]), pic.stride[1]);
-          break;
-        case DAV1D_PIXEL_LAYOUT_I444:
-          avif::img::ToRGB<8, 8>().fromI444(img, reinterpret_cast<uint8_t*>(pic.data[0]), pic.stride[0], reinterpret_cast<uint8_t*>(pic.data[1]), pic.stride[1], reinterpret_cast<uint8_t*>(pic.data[2]), pic.stride[1]);
-          break;
+  if(pic.seq_hdr->color_range == 0) {
+    switch(pic.p.bpc) {
+      case 8: {
+        avif::img::Image<8> img = avif::img::Image<8>::createEmptyImage(avif::img::PixelOrder::RGB, pic.p.w, pic.p.h);
+        switch(pic.p.layout) {
+          case DAV1D_PIXEL_LAYOUT_I400:
+          case DAV1D_PIXEL_LAYOUT_I420:
+            avif::img::ToRGB<8, 8, false>().fromI420(img, reinterpret_cast<uint8_t*>(pic.data[0]), pic.stride[0], reinterpret_cast<uint8_t*>(pic.data[1]), pic.stride[1], reinterpret_cast<uint8_t*>(pic.data[2]), pic.stride[1]);
+            break;
+          case DAV1D_PIXEL_LAYOUT_I422:
+            avif::img::ToRGB<8, 8, false>().fromI422(img, reinterpret_cast<uint8_t*>(pic.data[0]), pic.stride[0], reinterpret_cast<uint8_t*>(pic.data[1]), pic.stride[1], reinterpret_cast<uint8_t*>(pic.data[2]), pic.stride[1]);
+            break;
+          case DAV1D_PIXEL_LAYOUT_I444:
+            avif::img::ToRGB<8, 8, false>().fromI444(img, reinterpret_cast<uint8_t*>(pic.data[0]), pic.stride[0], reinterpret_cast<uint8_t*>(pic.data[1]), pic.stride[1], reinterpret_cast<uint8_t*>(pic.data[2]), pic.stride[1]);
+            break;
+        }
+        return img;
       }
-      return img;
-    }
-    case 10: {
-      avif::img::Image<16> img = avif::img::Image<16>::createEmptyImage(avif::img::PixelOrder::RGB, pic.p.w, pic.p.h);
-      switch(pic.p.layout) {
-        case DAV1D_PIXEL_LAYOUT_I400:
-        case DAV1D_PIXEL_LAYOUT_I420:
-          avif::img::ToRGB<16, 10>().fromI420(img, reinterpret_cast<uint8_t*>(pic.data[0]), pic.stride[0], reinterpret_cast<uint8_t*>(pic.data[1]), pic.stride[1], reinterpret_cast<uint8_t*>(pic.data[2]), pic.stride[1]);
-          break;
-        case DAV1D_PIXEL_LAYOUT_I422:
-          avif::img::ToRGB<16, 10>().fromI422(img, reinterpret_cast<uint8_t*>(pic.data[0]), pic.stride[0], reinterpret_cast<uint8_t*>(pic.data[1]), pic.stride[1], reinterpret_cast<uint8_t*>(pic.data[2]), pic.stride[1]);
-          break;
-        case DAV1D_PIXEL_LAYOUT_I444:
-          avif::img::ToRGB<16, 10>().fromI444(img, reinterpret_cast<uint8_t*>(pic.data[0]), pic.stride[0], reinterpret_cast<uint8_t*>(pic.data[1]), pic.stride[1], reinterpret_cast<uint8_t*>(pic.data[2]), pic.stride[1]);
-          break;
+      case 10: {
+        avif::img::Image<16> img = avif::img::Image<16>::createEmptyImage(avif::img::PixelOrder::RGB, pic.p.w, pic.p.h);
+        switch(pic.p.layout) {
+          case DAV1D_PIXEL_LAYOUT_I400:
+          case DAV1D_PIXEL_LAYOUT_I420:
+            avif::img::ToRGB<16, 10, false>().fromI420(img, reinterpret_cast<uint8_t*>(pic.data[0]), pic.stride[0], reinterpret_cast<uint8_t*>(pic.data[1]), pic.stride[1], reinterpret_cast<uint8_t*>(pic.data[2]), pic.stride[1]);
+            break;
+          case DAV1D_PIXEL_LAYOUT_I422:
+            avif::img::ToRGB<16, 10, false>().fromI422(img, reinterpret_cast<uint8_t*>(pic.data[0]), pic.stride[0], reinterpret_cast<uint8_t*>(pic.data[1]), pic.stride[1], reinterpret_cast<uint8_t*>(pic.data[2]), pic.stride[1]);
+            break;
+          case DAV1D_PIXEL_LAYOUT_I444:
+            avif::img::ToRGB<16, 10, false>().fromI444(img, reinterpret_cast<uint8_t*>(pic.data[0]), pic.stride[0], reinterpret_cast<uint8_t*>(pic.data[1]), pic.stride[1], reinterpret_cast<uint8_t*>(pic.data[2]), pic.stride[1]);
+            break;
+        }
+        return img;
       }
-      return img;
-    }
-    case 12: {
-      avif::img::Image<16> img = avif::img::Image<16>::createEmptyImage(avif::img::PixelOrder::RGB, pic.p.w, pic.p.h);
-      switch(pic.p.layout) {
-        case DAV1D_PIXEL_LAYOUT_I400:
-        case DAV1D_PIXEL_LAYOUT_I420:
-          avif::img::ToRGB<16, 12>().fromI420(img, reinterpret_cast<uint8_t*>(pic.data[0]), pic.stride[0], reinterpret_cast<uint8_t*>(pic.data[1]), pic.stride[1], reinterpret_cast<uint8_t*>(pic.data[2]), pic.stride[1]);
-          break;
-        case DAV1D_PIXEL_LAYOUT_I422:
-          avif::img::ToRGB<16, 12>().fromI422(img, reinterpret_cast<uint8_t*>(pic.data[0]), pic.stride[0], reinterpret_cast<uint8_t*>(pic.data[1]), pic.stride[1], reinterpret_cast<uint8_t*>(pic.data[2]), pic.stride[1]);
-          break;
-        case DAV1D_PIXEL_LAYOUT_I444:
-          avif::img::ToRGB<16, 12>().fromI444(img, reinterpret_cast<uint8_t*>(pic.data[0]), pic.stride[0], reinterpret_cast<uint8_t*>(pic.data[1]), pic.stride[1], reinterpret_cast<uint8_t*>(pic.data[2]), pic.stride[1]);
-          break;
+      case 12: {
+        avif::img::Image<16> img = avif::img::Image<16>::createEmptyImage(avif::img::PixelOrder::RGB, pic.p.w, pic.p.h);
+        switch(pic.p.layout) {
+          case DAV1D_PIXEL_LAYOUT_I400:
+          case DAV1D_PIXEL_LAYOUT_I420:
+            avif::img::ToRGB<16, 12, false>().fromI420(img, reinterpret_cast<uint8_t*>(pic.data[0]), pic.stride[0], reinterpret_cast<uint8_t*>(pic.data[1]), pic.stride[1], reinterpret_cast<uint8_t*>(pic.data[2]), pic.stride[1]);
+            break;
+          case DAV1D_PIXEL_LAYOUT_I422:
+            avif::img::ToRGB<16, 12, false>().fromI422(img, reinterpret_cast<uint8_t*>(pic.data[0]), pic.stride[0], reinterpret_cast<uint8_t*>(pic.data[1]), pic.stride[1], reinterpret_cast<uint8_t*>(pic.data[2]), pic.stride[1]);
+            break;
+          case DAV1D_PIXEL_LAYOUT_I444:
+            avif::img::ToRGB<16, 12, false>().fromI444(img, reinterpret_cast<uint8_t*>(pic.data[0]), pic.stride[0], reinterpret_cast<uint8_t*>(pic.data[1]), pic.stride[1], reinterpret_cast<uint8_t*>(pic.data[2]), pic.stride[1]);
+            break;
+        }
+        return img;
       }
-      return img;
+      default:
+        throw std::runtime_error(tfm::format("Unknwon bpc=%d", pic.p.bpc));
     }
-    default:
-      throw std::runtime_error(tfm::format("Unknwon bpc=%d", pic.p.bpc));
+  } else {
+    switch(pic.p.bpc) {
+      case 8: {
+        avif::img::Image<8> img = avif::img::Image<8>::createEmptyImage(avif::img::PixelOrder::RGB, pic.p.w, pic.p.h);
+        switch(pic.p.layout) {
+          case DAV1D_PIXEL_LAYOUT_I400:
+          case DAV1D_PIXEL_LAYOUT_I420:
+            avif::img::ToRGB<8, 8, true>().fromI420(img, reinterpret_cast<uint8_t*>(pic.data[0]), pic.stride[0], reinterpret_cast<uint8_t*>(pic.data[1]), pic.stride[1], reinterpret_cast<uint8_t*>(pic.data[2]), pic.stride[1]);
+            break;
+          case DAV1D_PIXEL_LAYOUT_I422:
+            avif::img::ToRGB<8, 8, true>().fromI422(img, reinterpret_cast<uint8_t*>(pic.data[0]), pic.stride[0], reinterpret_cast<uint8_t*>(pic.data[1]), pic.stride[1], reinterpret_cast<uint8_t*>(pic.data[2]), pic.stride[1]);
+            break;
+          case DAV1D_PIXEL_LAYOUT_I444:
+            avif::img::ToRGB<8, 8, true>().fromI444(img, reinterpret_cast<uint8_t*>(pic.data[0]), pic.stride[0], reinterpret_cast<uint8_t*>(pic.data[1]), pic.stride[1], reinterpret_cast<uint8_t*>(pic.data[2]), pic.stride[1]);
+            break;
+        }
+        return img;
+      }
+      case 10: {
+        avif::img::Image<16> img = avif::img::Image<16>::createEmptyImage(avif::img::PixelOrder::RGB, pic.p.w, pic.p.h);
+        switch(pic.p.layout) {
+          case DAV1D_PIXEL_LAYOUT_I400:
+          case DAV1D_PIXEL_LAYOUT_I420:
+            avif::img::ToRGB<16, 10, true>().fromI420(img, reinterpret_cast<uint8_t*>(pic.data[0]), pic.stride[0], reinterpret_cast<uint8_t*>(pic.data[1]), pic.stride[1], reinterpret_cast<uint8_t*>(pic.data[2]), pic.stride[1]);
+            break;
+          case DAV1D_PIXEL_LAYOUT_I422:
+            avif::img::ToRGB<16, 10, true>().fromI422(img, reinterpret_cast<uint8_t*>(pic.data[0]), pic.stride[0], reinterpret_cast<uint8_t*>(pic.data[1]), pic.stride[1], reinterpret_cast<uint8_t*>(pic.data[2]), pic.stride[1]);
+            break;
+          case DAV1D_PIXEL_LAYOUT_I444:
+            avif::img::ToRGB<16, 10, true>().fromI444(img, reinterpret_cast<uint8_t*>(pic.data[0]), pic.stride[0], reinterpret_cast<uint8_t*>(pic.data[1]), pic.stride[1], reinterpret_cast<uint8_t*>(pic.data[2]), pic.stride[1]);
+            break;
+        }
+        return img;
+      }
+      case 12: {
+        avif::img::Image<16> img = avif::img::Image<16>::createEmptyImage(avif::img::PixelOrder::RGB, pic.p.w, pic.p.h);
+        switch(pic.p.layout) {
+          case DAV1D_PIXEL_LAYOUT_I400:
+          case DAV1D_PIXEL_LAYOUT_I420:
+            avif::img::ToRGB<16, 12, true>().fromI420(img, reinterpret_cast<uint8_t*>(pic.data[0]), pic.stride[0], reinterpret_cast<uint8_t*>(pic.data[1]), pic.stride[1], reinterpret_cast<uint8_t*>(pic.data[2]), pic.stride[1]);
+            break;
+          case DAV1D_PIXEL_LAYOUT_I422:
+            avif::img::ToRGB<16, 12, true>().fromI422(img, reinterpret_cast<uint8_t*>(pic.data[0]), pic.stride[0], reinterpret_cast<uint8_t*>(pic.data[1]), pic.stride[1], reinterpret_cast<uint8_t*>(pic.data[2]), pic.stride[1]);
+            break;
+          case DAV1D_PIXEL_LAYOUT_I444:
+            avif::img::ToRGB<16, 12, true>().fromI444(img, reinterpret_cast<uint8_t*>(pic.data[0]), pic.stride[0], reinterpret_cast<uint8_t*>(pic.data[1]), pic.stride[1], reinterpret_cast<uint8_t*>(pic.data[2]), pic.stride[1]);
+            break;
+        }
+        return img;
+      }
+      default:
+        throw std::runtime_error(tfm::format("Unknwon bpc=%d", pic.p.bpc));
+    }
   }
 }
 
