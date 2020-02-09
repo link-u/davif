@@ -86,6 +86,7 @@ target_link_libraries(davif zlibstatic)
 target_link_libraries(davif png_static)
 target_link_libraries(davif dav1d)
 target_link_libraries(davif pthread)
+target_link_libraries(davif dl)
 
 ###############################################################################
 
