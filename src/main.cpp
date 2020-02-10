@@ -327,7 +327,7 @@ int _main(int argc, char** argv) {
       return -1;
     }
     auto finish = std::chrono::steady_clock::now();
-    log.info("Decoded in %d [ms]", std::chrono::duration_cast<std::chrono::milliseconds>(finish-start).count());
+    log.info(" Decoded: %s -> %s in %d [ms]", inputFilename, outputFilename, std::chrono::duration_cast<std::chrono::milliseconds>(finish-start).count());
   }
 
   // Write to file.
