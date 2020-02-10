@@ -1,5 +1,8 @@
 # davif
 
+![Just build on push.](https://github.com/link-u/davif/workflows/Just%20build%20on%20push./badge.svg)  
+![Build debian package on push or release-tags.](https://github.com/link-u/davif/workflows/Build%20debian%20package%20on%20push%20or%20release-tags./badge.svg)
+
 avif decoder, using dav1d directly.
 
 ## usage
