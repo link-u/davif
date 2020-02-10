@@ -249,7 +249,7 @@ int _main(int argc, char** argv) {
   avif::util::FileLogger log(stdout, stderr, avif::util::Logger::DEBUG);
 
   log.info("davif");
-  log.debug("dav1d ver: %s", dav1d_version());
+  log.debug(" - dav1d ver: %s", dav1d_version());
 
   // Init dav1d
   Dav1dSettings settings{};
@@ -290,7 +290,7 @@ int _main(int argc, char** argv) {
   // parse ISOBMFF
   avif::Parser parser(log, std::move(std::get<0>(avif_data)));
   std::shared_ptr<avif::Parser::Result> res = parser.parse();
-  if(!res->ok()){
+  if (!res->ok()) {
     log.fatal("Failed to parse %s as avif: %s\n", inputFilename, res->error());
   }
   avif::FileBox const& fileBox = res->fileBox();
