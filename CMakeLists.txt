@@ -7,6 +7,11 @@ set(CMAKE_CXX_FLAGS_DEBUG "-g3 -O0 -fno-omit-frame-pointer")
 ###############################################################################
 add_subdirectory(external/libavif-container EXCLUDE_FROM_ALL)
 ###############################################################################
+# fmt
+set(FMT_TEST OFF CACHE BOOL "" FORCE)
+set(FMT_FUZZ OFF CACHE BOOL "" FORCE)
+add_subdirectory(external/fmt EXCLUDE_FROM_ALL)
+###############################################################################
 # zlib
 set(ASM686L OFF CACHE BOOL "Enable building i686 assembly implementation" FORCE)
 set(ASM686 OFF CACHE BOOL "Enable building amd64 assembly implementation" FORCE)
@@ -71,7 +76,15 @@ ELSE()
 ENDIF()
 ###############################################################################
 
-add_executable(davif src/main.cpp)
+add_executable(davif
+        src/img/Conversion.cpp
+        src/img/Conversion.hpp
+
+        src/img/PNGWriter.cpp
+        src/img/PNGWriter.hpp
+
+        src/main.cpp
+)
 
 add_dependencies(davif dav1d_repo)
 
@@ -81,12 +94,13 @@ target_include_directories(davif PRIVATE external/libavif-container/src)
 target_include_directories(davif PRIVATE external/libyuv/include)
 target_link_directories(davif PRIVATE "${CMAKE_BINARY_DIR}/lib")
 
-target_link_libraries(davif libavif-container)
-target_link_libraries(davif zlibstatic)
-target_link_libraries(davif png_static)
-target_link_libraries(davif dav1d)
-target_link_libraries(davif pthread)
-target_link_libraries(davif dl)
+target_link_libraries(davif PRIVATE libavif-container)
+target_link_libraries(davif PRIVATE fmt::fmt)
+target_link_libraries(davif PRIVATE zlibstatic)
+target_link_libraries(davif PRIVATE png_static)
+target_link_libraries(davif PRIVATE dav1d)
+target_link_libraries(davif PRIVATE pthread)
+target_link_libraries(davif PRIVATE dl)
 
 ###############################################################################
 

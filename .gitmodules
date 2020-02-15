@@ -4,9 +4,6 @@
 [submodule "external/libavif-container"]
 	path = external/libavif-container
 	url = git@github.com:link-u/libavif-container.git
-[submodule "external/tinyformat"]
-	path = external/tinyformat
-	url = git@github.com:c42f/tinyformat.git
 [submodule "external/libyuv"]
 	path = external/libyuv
 	url = https://chromium.googlesource.com/libyuv/libyuv
@@ -20,3 +17,6 @@
 [submodule "external/clipp"]
 	path = external/clipp
 	url = git@github.com:muellan/clipp.git
+[submodule "external/fmt"]
+	path = external/fmt
+	url = git@github.com:fmtlib/fmt.git

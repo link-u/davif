@@ -3,12 +3,9 @@
 #include <optional>
 
 #include <dav1d/dav1d.h>
-#include <png.h>
-
-#include <avif/util/File.hpp>
 #include <avif/util/Logger.hpp>
 #include <avif/util/FileLogger.hpp>
-#include <avif/util/StreamWriter.hpp>
+#include <avif/util/File.hpp>
 #include <avif/Parser.hpp>
 #include <avif/img/Image.hpp>
 #include <avif/img/Conversion.hpp>
@@ -17,6 +14,8 @@
 #include <thread>
 
 #include "../external/clipp/include/clipp.h"
+#include "img/PNGWriter.hpp"
+#include "img/Conversion.hpp"
 
 namespace {
 
@@ -36,149 +35,6 @@ std::string basename(std::string const& path) {
 }
 
 void nop_free_callback(const uint8_t *buf, void *cookie) {
-}
-
-std::variant<avif::img::Image<8>, avif::img::Image<16>> convertToRGB(Dav1dPicture& pic) {
-  std::variant<avif::img::Image<8>, avif::img::Image<16>> result;
-  if(pic.seq_hdr->color_range == 0) {
-    switch(pic.p.bpc) {
-      case 8: {
-        avif::img::Image<8> img = avif::img::Image<8>::createEmptyImage(avif::img::PixelOrder::RGB, pic.p.w, pic.p.h);
-        switch(pic.p.layout) {
-          case DAV1D_PIXEL_LAYOUT_I400:
-          case DAV1D_PIXEL_LAYOUT_I420:
-            avif::img::ToRGB<8, 8, false>().fromI420(img, reinterpret_cast<uint8_t*>(pic.data[0]), pic.stride[0], reinterpret_cast<uint8_t*>(pic.data[1]), pic.stride[1], reinterpret_cast<uint8_t*>(pic.data[2]), pic.stride[1]);
-            break;
-          case DAV1D_PIXEL_LAYOUT_I422:
-            avif::img::ToRGB<8, 8, false>().fromI422(img, reinterpret_cast<uint8_t*>(pic.data[0]), pic.stride[0], reinterpret_cast<uint8_t*>(pic.data[1]), pic.stride[1], reinterpret_cast<uint8_t*>(pic.data[2]), pic.stride[1]);
-            break;
-          case DAV1D_PIXEL_LAYOUT_I444:
-            avif::img::ToRGB<8, 8, false>().fromI444(img, reinterpret_cast<uint8_t*>(pic.data[0]), pic.stride[0], reinterpret_cast<uint8_t*>(pic.data[1]), pic.stride[1], reinterpret_cast<uint8_t*>(pic.data[2]), pic.stride[1]);
-            break;
-        }
-        return img;
-      }
-      case 10: {
-        avif::img::Image<16> img = avif::img::Image<16>::createEmptyImage(avif::img::PixelOrder::RGB, pic.p.w, pic.p.h);
-        switch(pic.p.layout) {
-          case DAV1D_PIXEL_LAYOUT_I400:
-          case DAV1D_PIXEL_LAYOUT_I420:
-            avif::img::ToRGB<16, 10, false>().fromI420(img, reinterpret_cast<uint8_t*>(pic.data[0]), pic.stride[0], reinterpret_cast<uint8_t*>(pic.data[1]), pic.stride[1], reinterpret_cast<uint8_t*>(pic.data[2]), pic.stride[1]);
-            break;
-          case DAV1D_PIXEL_LAYOUT_I422:
-            avif::img::ToRGB<16, 10, false>().fromI422(img, reinterpret_cast<uint8_t*>(pic.data[0]), pic.stride[0], reinterpret_cast<uint8_t*>(pic.data[1]), pic.stride[1], reinterpret_cast<uint8_t*>(pic.data[2]), pic.stride[1]);
-            break;
-          case DAV1D_PIXEL_LAYOUT_I444:
-            avif::img::ToRGB<16, 10, false>().fromI444(img, reinterpret_cast<uint8_t*>(pic.data[0]), pic.stride[0], reinterpret_cast<uint8_t*>(pic.data[1]), pic.stride[1], reinterpret_cast<uint8_t*>(pic.data[2]), pic.stride[1]);
-            break;
-        }
-        return img;
-      }
-      case 12: {
-        avif::img::Image<16> img = avif::img::Image<16>::createEmptyImage(avif::img::PixelOrder::RGB, pic.p.w, pic.p.h);
-        switch(pic.p.layout) {
-          case DAV1D_PIXEL_LAYOUT_I400:
-          case DAV1D_PIXEL_LAYOUT_I420:
-            avif::img::ToRGB<16, 12, false>().fromI420(img, reinterpret_cast<uint8_t*>(pic.data[0]), pic.stride[0], reinterpret_cast<uint8_t*>(pic.data[1]), pic.stride[1], reinterpret_cast<uint8_t*>(pic.data[2]), pic.stride[1]);
-            break;
-          case DAV1D_PIXEL_LAYOUT_I422:
-            avif::img::ToRGB<16, 12, false>().fromI422(img, reinterpret_cast<uint8_t*>(pic.data[0]), pic.stride[0], reinterpret_cast<uint8_t*>(pic.data[1]), pic.stride[1], reinterpret_cast<uint8_t*>(pic.data[2]), pic.stride[1]);
-            break;
-          case DAV1D_PIXEL_LAYOUT_I444:
-            avif::img::ToRGB<16, 12, false>().fromI444(img, reinterpret_cast<uint8_t*>(pic.data[0]), pic.stride[0], reinterpret_cast<uint8_t*>(pic.data[1]), pic.stride[1], reinterpret_cast<uint8_t*>(pic.data[2]), pic.stride[1]);
-            break;
-        }
-        return img;
-      }
-      default:
-        throw std::runtime_error(tfm::format("Unknwon bpc=%d", pic.p.bpc));
-    }
-  } else {
-    switch(pic.p.bpc) {
-      case 8: {
-        avif::img::Image<8> img = avif::img::Image<8>::createEmptyImage(avif::img::PixelOrder::RGB, pic.p.w, pic.p.h);
-        switch(pic.p.layout) {
-          case DAV1D_PIXEL_LAYOUT_I400:
-          case DAV1D_PIXEL_LAYOUT_I420:
-            avif::img::ToRGB<8, 8, true>().fromI420(img, reinterpret_cast<uint8_t*>(pic.data[0]), pic.stride[0], reinterpret_cast<uint8_t*>(pic.data[1]), pic.stride[1], reinterpret_cast<uint8_t*>(pic.data[2]), pic.stride[1]);
-            break;
-          case DAV1D_PIXEL_LAYOUT_I422:
-            avif::img::ToRGB<8, 8, true>().fromI422(img, reinterpret_cast<uint8_t*>(pic.data[0]), pic.stride[0], reinterpret_cast<uint8_t*>(pic.data[1]), pic.stride[1], reinterpret_cast<uint8_t*>(pic.data[2]), pic.stride[1]);
-            break;
-          case DAV1D_PIXEL_LAYOUT_I444:
-            avif::img::ToRGB<8, 8, true>().fromI444(img, reinterpret_cast<uint8_t*>(pic.data[0]), pic.stride[0], reinterpret_cast<uint8_t*>(pic.data[1]), pic.stride[1], reinterpret_cast<uint8_t*>(pic.data[2]), pic.stride[1]);
-            break;
-        }
-        return img;
-      }
-      case 10: {
-        avif::img::Image<16> img = avif::img::Image<16>::createEmptyImage(avif::img::PixelOrder::RGB, pic.p.w, pic.p.h);
-        switch(pic.p.layout) {
-          case DAV1D_PIXEL_LAYOUT_I400:
-          case DAV1D_PIXEL_LAYOUT_I420:
-            avif::img::ToRGB<16, 10, true>().fromI420(img, reinterpret_cast<uint8_t*>(pic.data[0]), pic.stride[0], reinterpret_cast<uint8_t*>(pic.data[1]), pic.stride[1], reinterpret_cast<uint8_t*>(pic.data[2]), pic.stride[1]);
-            break;
-          case DAV1D_PIXEL_LAYOUT_I422:
-            avif::img::ToRGB<16, 10, true>().fromI422(img, reinterpret_cast<uint8_t*>(pic.data[0]), pic.stride[0], reinterpret_cast<uint8_t*>(pic.data[1]), pic.stride[1], reinterpret_cast<uint8_t*>(pic.data[2]), pic.stride[1]);
-            break;
-          case DAV1D_PIXEL_LAYOUT_I444:
-            avif::img::ToRGB<16, 10, true>().fromI444(img, reinterpret_cast<uint8_t*>(pic.data[0]), pic.stride[0], reinterpret_cast<uint8_t*>(pic.data[1]), pic.stride[1], reinterpret_cast<uint8_t*>(pic.data[2]), pic.stride[1]);
-            break;
-        }
-        return img;
-      }
-      case 12: {
-        avif::img::Image<16> img = avif::img::Image<16>::createEmptyImage(avif::img::PixelOrder::RGB, pic.p.w, pic.p.h);
-        switch(pic.p.layout) {
-          case DAV1D_PIXEL_LAYOUT_I400:
-          case DAV1D_PIXEL_LAYOUT_I420:
-            avif::img::ToRGB<16, 12, true>().fromI420(img, reinterpret_cast<uint8_t*>(pic.data[0]), pic.stride[0], reinterpret_cast<uint8_t*>(pic.data[1]), pic.stride[1], reinterpret_cast<uint8_t*>(pic.data[2]), pic.stride[1]);
-            break;
-          case DAV1D_PIXEL_LAYOUT_I422:
-            avif::img::ToRGB<16, 12, true>().fromI422(img, reinterpret_cast<uint8_t*>(pic.data[0]), pic.stride[0], reinterpret_cast<uint8_t*>(pic.data[1]), pic.stride[1], reinterpret_cast<uint8_t*>(pic.data[2]), pic.stride[1]);
-            break;
-          case DAV1D_PIXEL_LAYOUT_I444:
-            avif::img::ToRGB<16, 12, true>().fromI444(img, reinterpret_cast<uint8_t*>(pic.data[0]), pic.stride[0], reinterpret_cast<uint8_t*>(pic.data[1]), pic.stride[1], reinterpret_cast<uint8_t*>(pic.data[2]), pic.stride[1]);
-            break;
-        }
-        return img;
-      }
-      default:
-        throw std::runtime_error(tfm::format("Unknwon bpc=%d", pic.p.bpc));
-    }
-  }
-}
-
-void png_write_callback(png_structp  png_ptr, png_bytep data, png_size_t length) {
-  auto buff = reinterpret_cast<avif::util::StreamWriter*>(png_get_io_ptr(png_ptr));
-  buff->append(data, length);
-}
-
-template <size_t BitsPerComponent>
-std::optional<std::string> writePNG(avif::util::Logger& log, std::string const& filename, avif::img::Image<BitsPerComponent>& img) {
-  //FIXME(ledyba-z): add error handling
-  const size_t w = img.width();
-  const size_t h = img.height();
-  const size_t stride = img.stride();
-  png_structp p = png_create_write_struct(PNG_LIBPNG_VER_STRING, nullptr, nullptr, nullptr);
-  png_infop info_ptr = png_create_info_struct(p);
-  png_set_IHDR(p, info_ptr, w, h, BitsPerComponent,
-               img.pixelOrder() == avif::img::PixelOrder::RGBA ? PNG_COLOR_TYPE_RGBA : PNG_COLOR_TYPE_RGB,
-               PNG_INTERLACE_NONE,
-               PNG_COMPRESSION_TYPE_DEFAULT,
-               PNG_FILTER_TYPE_DEFAULT);
-  std::vector<uint8_t *> rows;
-  rows.resize(h);
-  for(int y = 0; y < h; ++y) {
-    rows[y] = img.data() + (stride * y);
-  }
-  png_set_rows(p, info_ptr, rows.data());
-  avif::util::StreamWriter out;
-  png_set_write_fn(p, &out, png_write_callback, nullptr);
-  png_write_png(p, info_ptr, BitsPerComponent == 16 ? PNG_TRANSFORM_SWAP_ENDIAN : PNG_TRANSFORM_IDENTITY, nullptr);
-  png_destroy_write_struct(&p, nullptr);
-  auto result = avif::util::writeFile(filename, out.buffer());
-  return std::move(result);
 }
 
 template <typename T>
@@ -340,11 +196,11 @@ int _main(int argc, char** argv) {
   if(std::holds_alternative<avif::img::Image<8>>(encoded)) {
     auto& img = std::get<avif::img::Image<8>>(encoded);
     img = applyTransform(std::move(img), fileBox);
-    writeResult = writePNG(log, outputFilename, img);
+    writeResult = PNGWriter(log, outputFilename).write(img);
   } else {
     auto& img = std::get<avif::img::Image<16>>(encoded);
     img = applyTransform(std::move(img), fileBox);
-    writeResult = writePNG(log, outputFilename, img);
+    writeResult = PNGWriter(log, outputFilename).write(img);
   }
   if(writeResult.has_value()) {
     log.fatal("Failed to write PNG: %s", writeResult.value());
