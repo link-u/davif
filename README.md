@@ -3,7 +3,13 @@
 ![Just build on push.](https://github.com/link-u/davif/workflows/Just%20build%20on%20push./badge.svg)  
 ![Build debian package on push or release-tags.](https://github.com/link-u/davif/workflows/Build%20debian%20package%20on%20push%20or%20release-tags./badge.svg)
 
-avif decoder, using dav1d directly.
+avif decoder, using [dav1d](https://code.videolan.org/videolan/dav1d) directly.
+
+[avif (AV1 Image File Format)](https://aomediacodec.github.io/av1-avif/) is a still picture format uses a keyframe of [AV1](https://aomediacodec.github.io/av1-spec/av1-spec.pdf).
+
+[AVIF(AV1 Image File Format)]((https://aomediacodec.github.io/av1-avif/))は、動画フォーマットである[AV1](https://aomediacodec.github.io/av1-spec/av1-spec.pdf)のキーフレームを流用して圧縮する静止画フォーマットです。
+
+davifは、ラッパーを介さず[dav1d](https://code.videolan.org/videolan/dav1d)を直接叩くavifのデコード・コマンドです。
 
 ## usage
 
