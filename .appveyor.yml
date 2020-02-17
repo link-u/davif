@@ -9,7 +9,7 @@ build_script:
 
       xcopy %CD% C:\msys64\home\appveyor\davif /e/i/h
 
-      C:\msys64\usr\bin\bash -lc "pacman -S mingw-w64-x86_64-nasm mingw-w64-x86_64-cmake --noconfirm"
+      C:\msys64\usr\bin\bash -lc "pacman -S mingw-w64-x86_64-dlfcn mingw-w64-x86_64-nasm mingw-w64-x86_64-cmake --noconfirm"
 
       C:\msys64\usr\bin\bash -lc "cd davif && git submodule update --init"
 
@@ -25,6 +25,8 @@ artifacts:
 deploy:
   - provider: GitHub
     artifact: davif-win64.7z           # upload all NuGet packages to release assets
+    auth_token:
+      secure: QbQ70S0qrbv9+8H3lkzRjFK5dNjb0bZdktusi/mgRlrw2O6iaglZDu6wbU203tLE
     draft: true
     prerelease: true
     on:
