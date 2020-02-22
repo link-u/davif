@@ -1,28 +1,23 @@
 # davif
 
-|         | Status |
+| | Status |
 |--|---|
 | Linux   | [![Build on Linux](https://github.com/link-u/davif/workflows/Build%20on%20Linux/badge.svg)](https://github.com/link-u/davif/actions?query=workflow%3A%22Build+on+Linux%22) |
 | Linux(.deb) | [![Build debian package](https://github.com/link-u/davif/workflows/Build%20debian%20package/badge.svg)](https://github.com/link-u/davif/actions?query=workflow%3A%22Build+debian+package%22) |
 | macOS   | [![Build on macOS](https://github.com/link-u/davif/workflows/Build%20on%20macOS/badge.svg)](https://github.com/link-u/davif/actions?query=workflow%3A%22Build+on+macOS%22) |
 | Windows | [![Build status](https://ci.appveyor.com/api/projects/status/hce7v0tol7mim6dx?svg=true)](https://ci.appveyor.com/project/ledyba-z/davif) |
 
+## Description (en)
 
 avif decoder, using [dav1d](https://code.videolan.org/videolan/dav1d) directly.
 
 [avif (AV1 Image File Format)](https://aomediacodec.github.io/av1-avif/) is a still picture format uses a keyframe of [AV1](https://aomediacodec.github.io/av1-spec/av1-spec.pdf).
 
+## Description (ja)
+
 [AVIF(AV1 Image File Format)]((https://aomediacodec.github.io/av1-avif/))は、動画フォーマットである[AV1](https://aomediacodec.github.io/av1-spec/av1-spec.pdf)のキーフレームを流用して圧縮する静止画フォーマットです。
 
 davifは、ラッパーを介さず[dav1d](https://code.videolan.org/videolan/dav1d)を直接叩くavifのデコード・コマンドです。
-
-## usage
-
-```bash
-davif -i <input.avif> -o <output.png>
-```
-
-Example avif files are available in [AOMediaCodec/av1-avif](https://github.com/AOMediaCodec/av1-avif/tree/master/testFiles) or [link-u/avif-sample-images](https://github.com/link-u/avif-sample-images).
 
 ## how to build
 
@@ -35,19 +30,32 @@ Example avif files are available in [AOMediaCodec/av1-avif](https://github.com/A
 git clone --recurse-submodules --recursive git@github.com:link-u/davif.git
 cd davif
 
-# build davif
-mkdir build && cd build
+# System gcc is 8.0 or higher:
 cmake ..
-make
 
-# show usage
-./davif
-SYNOPSIS
-        davif -i <input.avif> -o <output.png>
+# If not, please install gcc-8 (or higher) and tell them to CMake.
+CXX=g++-8 CC=gcc-8 cmake ..
+
+# build davif binary.
+make davif
 
 # decode an avif image.
 ./davif -i input.avif -o output.png
 ```
+
+## usage
+
+```bash
+% davif
+[2020/02/23 06:25:02 INFO ] davif
+[2020/02/23 06:25:02 DEBUG]  - dav1d ver: 0.5.2-75-g8974c15
+SYNOPSIS
+       davif -i <input.avif> -o <output.png> [--threads <Num of threads to use>]
+```
+
+Example avif files are available in [AOMediaCodec/av1-avif](https://github.com/AOMediaCodec/av1-avif/tree/master/testFiles) or [link-u/avif-sample-images](https://github.com/link-u/avif-sample-images).
+
+(Currently, detailed documentation is only in [Japanese](./doc/ja_JP/README.md))
 
 ## TODO
 
