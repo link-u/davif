@@ -2,9 +2,9 @@
 
 |         | Status |
 |--|---|
-| Linux   | ![Build on Linux](https://github.com/link-u/davif/workflows/Build%20on%20Linux/badge.svg) |
-| Linux(.deb)   | ![Build debian package](https://github.com/link-u/davif/workflows/Build%20debian%20package/badge.svg) |
-| macOS   | ![Build on macOS](https://github.com/link-u/davif/workflows/Build%20on%20macOS/badge.svg) |
+| Linux   | [![Build on Linux](https://github.com/link-u/davif/workflows/Build%20on%20Linux/badge.svg)](https://github.com/link-u/davif/actions?query=workflow%3A%22Build+on+Linux%22) |
+| Linux(.deb) | [![Build debian package](https://github.com/link-u/davif/workflows/Build%20debian%20package/badge.svg)](https://github.com/link-u/davif/actions?query=workflow%3A%22Build+debian+package%22) |
+| macOS   | [![Build on macOS](https://github.com/link-u/davif/workflows/Build%20on%20macOS/badge.svg)](https://github.com/link-u/davif/actions?query=workflow%3A%22Build+on+macOS%22) |
 | Windows | [![Build status](https://ci.appveyor.com/api/projects/status/hce7v0tol7mim6dx?svg=true)](https://ci.appveyor.com/project/ledyba-z/davif) |
 
 
