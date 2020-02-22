@@ -1,7 +1,6 @@
-name: Just build on push.
+name: Build on Linux
 
 on: [push]
-
 jobs:
   build:
     runs-on: ubuntu-18.04
@@ -18,7 +17,7 @@ jobs:
         git submodule foreach git submodule sync --recursive
         git submodule foreach git submodule init
         git submodule foreach git submodule update --init --force --recursive
-    - name: Install gcc-8 g++-8 yasm python3-venv python3-pip python3-setuptools meson ninja
+    - name: Install dependencies
       shell: bash
       run: |
         sudo apt install -y gcc-8 g++-8 yasm python3-venv python3-pip python3-setuptools
