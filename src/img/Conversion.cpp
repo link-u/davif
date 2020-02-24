@@ -82,11 +82,11 @@ template <size_t rgbBits, size_t yuvBits>
 avif::img::Image<rgbBits> convertToRGBA(Dav1dPicture& primary, Dav1dPicture& alpha) {
   switch(alpha.p.bpc) {
     case 8:
-      return convertToRGBA<rgbBits, 8, 8>(primary, alpha);
+      return convertToRGBA<rgbBits, yuvBits, 8>(primary, alpha);
     case 10:
-      return convertToRGBA<rgbBits, 10, 8>(primary, alpha);
+      return convertToRGBA<rgbBits, yuvBits, 10>(primary, alpha);
     case 12:
-      return convertToRGBA<rgbBits, 12, 8>(primary, alpha);
+      return convertToRGBA<rgbBits, yuvBits, 12>(primary, alpha);
     default:
       throw std::runtime_error(fmt::format("Unknwon alpha bpc={}", alpha.p.bpc));
   }
