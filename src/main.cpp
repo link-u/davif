@@ -6,12 +6,14 @@
 #include <avif/util/Logger.hpp>
 #include <avif/util/FileLogger.hpp>
 #include <avif/util/File.hpp>
+#include <avif/Constants.hpp>
 #include <avif/Parser.hpp>
 #include <avif/img/Image.hpp>
 #include <avif/img/Conversion.hpp>
 #include <avif/img/Crop.hpp>
 #include <avif/img/Transform.hpp>
 #include <thread>
+#include <avif/Query.hpp>
 
 #include "../external/clipp/include/clipp.h"
 #include "img/PNGWriter.hpp"
@@ -89,6 +91,34 @@ avif::img::Image<BitsPerComponent> applyTransform(avif::img::Image<BitsPerCompon
 }
 }
 
+unsigned int decodeImageAt(avif::util::Logger& log, std::shared_ptr<avif::Parser::Result> const& res, uint32_t const itemID, Dav1dContext* ctx, Dav1dPicture& pic) {
+  Dav1dData data{};
+  auto const buffBegin = res->buffer().data();
+  avif::FileBox const& fileBox = res->fileBox();
+  size_t const baseOffset = fileBox.metaBox.itemLocationBox.items.at(itemID - 1).baseOffset;
+  size_t const extentOffset = fileBox.metaBox.itemLocationBox.items.at(itemID - 1).extents[0].extentOffset;
+  size_t const extentLength = fileBox.metaBox.itemLocationBox.items.at(itemID - 1).extents[0].extentLength;
+  auto const imgBegin = std::next(buffBegin, baseOffset + extentOffset);
+  auto const imgEnd = std::next(imgBegin, extentLength);
+  {
+    auto start = std::chrono::steady_clock::now();
+
+    dav1d_data_wrap(&data, imgBegin, std::distance(imgBegin, imgEnd), nop_free_callback, nullptr);
+    int err = dav1d_send_data(ctx, &data);
+
+    if(err < 0) {
+      log.fatal( "Failed to send data to dav1d: %d\n", err);
+    }
+
+    err = dav1d_get_picture(ctx, &pic);
+    if (err < 0) {
+      log.error("Failed to decode dav1d: %d\n", err);
+    }
+    auto finish = std::chrono::steady_clock::now();
+    return std::chrono::duration_cast<std::chrono::milliseconds>(finish-start).count();
+  }
+}
+
 static int _main(int argc, char** argv);
 
 int main(int argc, char** argv) {
@@ -149,41 +179,30 @@ int _main(int argc, char** argv) {
   if (!res->ok()) {
     log.fatal("Failed to parse %s as avif: %s\n", inputFilename, res->error());
   }
-  avif::FileBox const& fileBox = res->fileBox();
 
   log.info("Decoding: %s -> %s", inputFilename, outputFilename);
   // start decoding
-  Dav1dData data{};
-  Dav1dPicture pic{};
-  size_t itemID = 0;
-  if(fileBox.metaBox.primaryItemBox.has_value()) {
-    itemID = fileBox.metaBox.primaryItemBox.value().itemID - 1;
+  avif::FileBox const& fileBox = res->fileBox();
+  Dav1dPicture primaryImg{};
+  std::optional<Dav1dPicture> alphaImg;
+  namespace query = avif::util::query;
+  uint32_t const primaryImageID = query::findPrimaryItemID(fileBox).value_or(1);
+  { // primary image
+    unsigned int elapsed = decodeImageAt(log, res, primaryImageID, ctx, primaryImg);
+    log.info(" Decoded: %s -> %s in %d [ms]", inputFilename, outputFilename, elapsed);
   }
-  // FIXME(ledyba-z): handle multiple pixtures
-  size_t const baseOffset = fileBox.metaBox.itemLocationBox.items[itemID].baseOffset;
-  size_t const extentOffset = fileBox.metaBox.itemLocationBox.items[itemID].extents[0].extentOffset;
-  size_t const extentLength = fileBox.metaBox.itemLocationBox.items[itemID].extents[0].extentLength;
-  auto const buffBegin = res->buffer().data();
-  auto const imgBegin = std::next(buffBegin, baseOffset + extentOffset);
-  auto const imgEnd = std::next(imgBegin, extentLength);
-  {
-    auto start = std::chrono::steady_clock::now();
 
-    dav1d_data_wrap(&data, imgBegin, std::distance(imgBegin, imgEnd), nop_free_callback, nullptr);
-    err = dav1d_send_data(ctx, &data);
-
-    if(err < 0) {
-      log.error( "Failed to send data to dav1d: %d\n", err);
-      return -1;
+  { // alpha image
+    std::optional<uint32_t> alphaID = query::findAuxItemID(fileBox, primaryImageID, avif::kAlphaAuxType);
+    if(alphaID.has_value()) {
+      alphaImg = Dav1dPicture{};
+      unsigned int elapsed = decodeImageAt(log, res, alphaID.value(), ctx, alphaImg.value());
+      log.info(" Decoded: %s -> %s in %d [ms] (Alpha image)", inputFilename, outputFilename, elapsed);
+      if(alphaImg.value().p.w != primaryImg.p.w || alphaImg.value().p.h != primaryImg.p.h) {
+        log.fatal("Alpha size (%d x %d) does not match to primary image(%d x %d).",
+                  alphaImg.value().p.w, alphaImg.value().p.h, primaryImg.p.w, primaryImg.p.h);
+      }
     }
-
-    err = dav1d_get_picture(ctx, &pic);
-    if (err < 0) {
-      log.error("Failed to decode dav1d: %d\n", err);
-      return -1;
-    }
-    auto finish = std::chrono::steady_clock::now();
-    log.info(" Decoded: %s -> %s in %d [ms]", inputFilename, outputFilename, std::chrono::duration_cast<std::chrono::milliseconds>(finish-start).count());
   }
 
   // Write to file.
@@ -192,7 +211,7 @@ int _main(int argc, char** argv) {
     log.fatal("Please give png file for output");
   }
   std::optional<std::string> writeResult;
-  std::variant<avif::img::Image<8>, avif::img::Image<16>> encoded = convertToRGB(pic);
+  std::variant<avif::img::Image<8>, avif::img::Image<16>> encoded = createImage(primaryImg, alphaImg);
   if(std::holds_alternative<avif::img::Image<8>>(encoded)) {
     auto& img = std::get<avif::img::Image<8>>(encoded);
     img = applyTransform(std::move(img), fileBox);
@@ -206,7 +225,10 @@ int _main(int argc, char** argv) {
     log.fatal("Failed to write PNG: %s", writeResult.value());
   }
 
-  dav1d_picture_unref(&pic);
+  dav1d_picture_unref(&primaryImg);
+  if(alphaImg.has_value()) {
+    dav1d_picture_unref(&alphaImg.value());
+  }
   dav1d_close(&ctx);
   return 0;
 }
