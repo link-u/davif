@@ -61,7 +61,6 @@ Example avif files are available in [AOMediaCodec/av1-avif](https://github.com/A
 ## TODO
 
  - Support:
-   - Alpha channel(Auxially images)
    - Color profiles
  - Add more and more command-line flags.
 
