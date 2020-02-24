@@ -36,8 +36,24 @@ public:
     const size_t stride = img.stride();
     png_structp p = png_create_write_struct(PNG_LIBPNG_VER_STRING, nullptr, nullptr, nullptr);
     png_infop info_ptr = png_create_info_struct(p);
+    int color_type = PNG_COLOR_TYPE_GRAY;
+    switch(img.pixelOrder()) {
+      case avif::img::PixelOrder::RGB:
+        color_type = PNG_COLOR_TYPE_RGB;
+        break;
+      case avif::img::PixelOrder::RGBA:
+        color_type = PNG_COLOR_TYPE_RGB_ALPHA;
+        break;
+      case avif::img::PixelOrder::Mono:
+        color_type = PNG_COLOR_TYPE_GRAY;
+        break;
+      case avif::img::PixelOrder::MonoA:
+        color_type = PNG_COLOR_TYPE_GRAY_ALPHA;
+        break;
+    }
+
     png_set_IHDR(p, info_ptr, w, h, BitsPerComponent,
-                 img.pixelOrder() == avif::img::PixelOrder::RGBA ? PNG_COLOR_TYPE_RGBA : PNG_COLOR_TYPE_RGB,
+                 color_type,
                  PNG_INTERLACE_NONE,
                  PNG_COMPRESSION_TYPE_DEFAULT,
                  PNG_FILTER_TYPE_DEFAULT);

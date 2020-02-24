@@ -119,6 +119,26 @@ unsigned int decodeImageAt(avif::util::Logger& log, std::shared_ptr<avif::Parser
   }
 }
 
+static void saveImage(avif::util::Logger& log, std::string const& dstPath, avif::FileBox const& fileBox, Dav1dPicture& primary, std::optional<Dav1dPicture>& alpha) {
+  if(!endsWidh(dstPath, ".png")) {
+    log.fatal("Please give png file for output: %s", dstPath);
+  }
+  std::optional<std::string> writeResult;
+  std::variant<avif::img::Image<8>, avif::img::Image<16>> encoded = createImage(primary, alpha);
+  if(std::holds_alternative<avif::img::Image<8>>(encoded)) {
+    auto& img = std::get<avif::img::Image<8>>(encoded);
+    img = applyTransform(std::move(img), fileBox);
+    writeResult = PNGWriter(log, dstPath).write(img);
+  } else {
+    auto& img = std::get<avif::img::Image<16>>(encoded);
+    img = applyTransform(std::move(img), fileBox);
+    writeResult = PNGWriter(log, dstPath).write(img);
+  }
+  if(writeResult.has_value()) {
+    log.fatal("Failed to write PNG: %s", writeResult.value());
+  }
+}
+
 static int _main(int argc, char** argv);
 
 int main(int argc, char** argv) {
@@ -144,11 +164,15 @@ int _main(int argc, char** argv) {
 
   std::string inputFilename = {};
   std::string outputFilename = {};
+  std::optional<std::string> outputAlphaFilename = {};
+  std::optional<std::string> outputDepthFilename = {};
   {
     using namespace clipp;
     auto cli = (
         required("-i", "--input") & value("input.avif", inputFilename),
         required("-o", "--output") & value("output.png", outputFilename),
+        option("--extract-alpha") & value("output-alpha.png").call([&](std::string const& path){ outputAlphaFilename = path; }),
+        option("--extract-depth") & value("output-depth.png").call([&](std::string const& path){ outputDepthFilename = path; }),
         option("--threads") & integer("Num of threads to use", settings.n_tile_threads)
     );
     if(!parse(argc, argv, cli)) {
@@ -193,7 +217,7 @@ int _main(int argc, char** argv) {
   }
 
   { // alpha image
-    std::optional<uint32_t> alphaID = query::findAuxItemID(fileBox, primaryImageID, avif::kAlphaAuxType);
+    std::optional<uint32_t> alphaID = query::findAuxItemID(fileBox, primaryImageID, avif::kAlphaAuxType());
     if(alphaID.has_value()) {
       alphaImg = Dav1dPicture{};
       unsigned int elapsed = decodeImageAt(log, res, alphaID.value(), ctx, alphaImg.value());
@@ -204,28 +228,42 @@ int _main(int argc, char** argv) {
         log.fatal("Alpha size (%d x %d) does not match to primary image(%d x %d).",
                   alphaImg.value().p.w, alphaImg.value().p.h, primaryImg.p.w, primaryImg.p.h);
       }
+      if(outputAlphaFilename.has_value()) {
+        std::optional<Dav1dPicture> empty{};
+        saveImage(log, outputAlphaFilename.value(), fileBox, alphaImg.value(), empty);
+        log.info(" Extracted: %s -> %s (Alpha image)", inputFilename, outputAlphaFilename.value());
+      }
+    }else{
+      if(outputAlphaFilename.has_value()) {
+        log.fatal("%s does not have alpha plane.", inputFilename);
+      }
     }
   }
-
+  { // depth image
+    std::optional<uint32_t> depthID = query::findAuxItemID(fileBox, primaryImageID, avif::kDepthAuxType());
+    if(depthID.has_value()) {
+      Dav1dPicture depthImg = {};
+      unsigned int elapsed = decodeImageAt(log, res, depthID.value(), ctx, depthImg);
+      log.info(" Decoded: %s in %d [ms] (Depth image)", inputFilename, elapsed);
+      if(depthImg.p.w != primaryImg.p.w || depthImg.p.h != primaryImg.p.h) {
+        // TODO(ledyba-z): Can alpha image and primary image be different size?
+        //  see: https://github.com/AOMediaCodec/av1-avif/issues/68
+        log.fatal("Alpha size (%d x %d) does not match to primary image(%d x %d).",
+                  depthImg.p.w, depthImg.p.h, primaryImg.p.w, primaryImg.p.h);
+      }
+      if(outputDepthFilename.has_value()) {
+        std::optional<Dav1dPicture> empty{};
+        saveImage(log, outputDepthFilename.value(), fileBox, depthImg, empty);
+        log.info(" Extracted: %s -> %s (Depth image)", inputFilename, outputDepthFilename.value());
+      }
+    }else{
+      if(outputDepthFilename.has_value()) {
+        log.fatal("%s does not have depth plane.", inputFilename);
+      }
+    }
+  }
   // Write to file.
-
-  if(!endsWidh(outputFilename, ".png")) {
-    log.fatal("Please give png file for output");
-  }
-  std::optional<std::string> writeResult;
-  std::variant<avif::img::Image<8>, avif::img::Image<16>> encoded = createImage(primaryImg, alphaImg);
-  if(std::holds_alternative<avif::img::Image<8>>(encoded)) {
-    auto& img = std::get<avif::img::Image<8>>(encoded);
-    img = applyTransform(std::move(img), fileBox);
-    writeResult = PNGWriter(log, outputFilename).write(img);
-  } else {
-    auto& img = std::get<avif::img::Image<16>>(encoded);
-    img = applyTransform(std::move(img), fileBox);
-    writeResult = PNGWriter(log, outputFilename).write(img);
-  }
-  if(writeResult.has_value()) {
-    log.fatal("Failed to write PNG: %s", writeResult.value());
-  }
+  saveImage(log, outputFilename, fileBox, primaryImg, alphaImg);
 
   dav1d_picture_unref(&primaryImg);
   if(alphaImg.has_value()) {
