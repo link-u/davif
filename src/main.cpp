@@ -199,6 +199,8 @@ int _main(int argc, char** argv) {
       unsigned int elapsed = decodeImageAt(log, res, alphaID.value(), ctx, alphaImg.value());
       log.info(" Decoded: %s -> %s in %d [ms] (Alpha image)", inputFilename, outputFilename, elapsed);
       if(alphaImg.value().p.w != primaryImg.p.w || alphaImg.value().p.h != primaryImg.p.h) {
+        // TODO(ledyba-z): Can alpha image and primary image be different size?
+        //  see: https://github.com/AOMediaCodec/av1-avif/issues/68
         log.fatal("Alpha size (%d x %d) does not match to primary image(%d x %d).",
                   alphaImg.value().p.w, alphaImg.value().p.h, primaryImg.p.w, primaryImg.p.h);
       }
