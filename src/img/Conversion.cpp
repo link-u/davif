@@ -71,9 +71,9 @@ avif::img::Image<rgbBits> convertToRGBA(Dav1dPicture& primary, Dav1dPicture& alp
   }
 
   if(alpha.seq_hdr->color_range == 0) {
-    writeAlpha<rgbBits, yuvBits, false>(img, alpha);
+    writeAlpha<rgbBits, monoBits, false>(img, alpha);
   } else {
-    writeAlpha<rgbBits, yuvBits, true>(img, alpha);
+    writeAlpha<rgbBits, monoBits, true>(img, alpha);
   }
   return std::move(img);
 }
