@@ -47,10 +47,11 @@ make davif
 
 ```bash
 % davif
-[2020/02/23 06:25:02 INFO ] davif
-[2020/02/23 06:25:02 DEBUG]  - dav1d ver: 0.5.2-75-g8974c15
+[2020/02/25 06:46:09 INFO ] davif
+[2020/02/25 06:46:09 DEBUG]  - dav1d ver: 0.5.2-75-g8974c15
 SYNOPSIS
-       davif -i <input.avif> -o <output.png> [--threads <Num of threads to use>]
+        davif -i <input.avif> -o <output.png> [--extract-alpha <output-alpha.png>] [--extract-depth
+              <output-depth.png>] [--threads <Num of threads to use>]
 ```
 
 Example avif files are available in [AOMediaCodec/av1-avif](https://github.com/AOMediaCodec/av1-avif/tree/master/testFiles) or [link-u/avif-sample-images](https://github.com/link-u/avif-sample-images).

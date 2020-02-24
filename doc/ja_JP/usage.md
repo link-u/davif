@@ -10,6 +10,15 @@
 
  - `-o output.png`（必須）
 
+### Alpha/Depth画像の展開
+
+ - `--extract-alpha <alpha.png>`
+ - `--extract-depth <depth.png>`
+
+付与されているalpha/depthの画像を別ファイルにデコードして保存する。
+
+このオプションでalphaを展開しても、`-o <output.png>`で指定したファイルには引き続きalphaは適用される。
+
 ## マルチスレッド
 
 ### 利用スレッド数
