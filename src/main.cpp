@@ -12,12 +12,15 @@
 #include <avif/img/Conversion.hpp>
 #include <avif/img/Crop.hpp>
 #include <avif/img/Transform.hpp>
+#include <avif/av1/SequenceHeader.hpp>
 #include <thread>
 #include <avif/Query.hpp>
 
 #include "../external/clipp/include/clipp.h"
 #include "img/PNGWriter.hpp"
 #include "img/Conversion.hpp"
+
+using MatrixType = avif::av1::SequenceHeader::ColorConfig::MatrixCoefficients;
 
 namespace {
 
@@ -58,6 +61,19 @@ std::optional<T> findBox(avif::FileBox const& fileBox, uint32_t itemID) {
     }
   }
   return std::optional<T>();
+}
+
+MatrixType calcMatrix(avif::FileBox const& fileBox, uint32_t const itemID, Dav1dPicture const& pic) {
+  namespace query = avif::util::query;
+  auto colr = query::findProperty<avif::ColourInformationBox>(fileBox, itemID);
+  if(!colr.has_value()){
+    return static_cast<MatrixType>(pic.seq_hdr->mtrx);
+  }
+  auto const& profile = colr.value().profile;
+  if(!std::holds_alternative<avif::ColourInformationBox::NCLX>(profile)){
+    return static_cast<MatrixType>(pic.seq_hdr->mtrx);
+  }
+  return static_cast<MatrixType>(std::get<avif::ColourInformationBox::NCLX>(profile).matrixCoefficients);
 }
 
 template <size_t BitsPerComponent>
@@ -119,12 +135,12 @@ unsigned int decodeImageAt(avif::util::Logger& log, std::shared_ptr<avif::Parser
   }
 }
 
-static void saveImage(avif::util::Logger& log, std::string const& dstPath, avif::FileBox const& fileBox, Dav1dPicture& primary, std::optional<Dav1dPicture>& alpha) {
+static void saveImage(avif::util::Logger& log, std::string const& dstPath, avif::FileBox const& fileBox, Dav1dPicture& primary, MatrixType const primaryMatrix, std::optional<Dav1dPicture>& alpha, std::optional<MatrixType>& alphaMatrix) {
   if(!endsWidh(dstPath, ".png")) {
     log.fatal("Please give png file for output: %s", dstPath);
   }
   std::optional<std::string> writeResult;
-  std::variant<avif::img::Image<8>, avif::img::Image<16>> encoded = createImage(primary, alpha);
+  std::variant<avif::img::Image<8>, avif::img::Image<16>> encoded = createImage(primary, primaryMatrix, alpha, alphaMatrix);
   if(std::holds_alternative<avif::img::Image<8>>(encoded)) {
     auto& img = std::get<avif::img::Image<8>>(encoded);
     img = applyTransform(std::move(img), fileBox);
@@ -150,6 +166,8 @@ int main(int argc, char** argv) {
     return -1;
   }
 }
+
+
 
 int _main(int argc, char** argv) {
   avif::util::FileLogger log(stdout, stderr, avif::util::Logger::DEBUG);
@@ -209,12 +227,14 @@ int _main(int argc, char** argv) {
   avif::FileBox const& fileBox = res->fileBox();
   Dav1dPicture primaryImg{};
   std::optional<Dav1dPicture> alphaImg;
+  std::optional<MatrixType > alphaMatrix;
   namespace query = avif::util::query;
   uint32_t const primaryImageID = query::findPrimaryItemID(fileBox).value_or(1);
   { // primary image
     unsigned int elapsed = decodeImageAt(log, res, primaryImageID, ctx, primaryImg);
     log.info(" Decoded: %s -> %s in %d [ms]", inputFilename, outputFilename, elapsed);
   }
+  MatrixType const primaryMatrix = calcMatrix(fileBox, primaryImageID, primaryImg);
 
   { // alpha image
     std::optional<uint32_t> alphaID = query::findAuxItemID(fileBox, primaryImageID, avif::kAlphaAuxType());
@@ -229,8 +249,10 @@ int _main(int argc, char** argv) {
                   alphaImg.value().p.w, alphaImg.value().p.h, primaryImg.p.w, primaryImg.p.h);
       }
       if(outputAlphaFilename.has_value()) {
+        alphaMatrix = calcMatrix(fileBox, alphaID.value(), alphaImg.value());
         std::optional<Dav1dPicture> empty{};
-        saveImage(log, outputAlphaFilename.value(), fileBox, alphaImg.value(), empty);
+        std::optional<MatrixType> emptyMatrix{};
+        saveImage(log, outputAlphaFilename.value(), fileBox, alphaImg.value(), alphaMatrix.value(), empty, emptyMatrix);
         log.info(" Extracted: %s -> %s (Alpha image)", inputFilename, outputAlphaFilename.value());
       }
     } else {
@@ -253,7 +275,9 @@ int _main(int argc, char** argv) {
       }
       if(outputDepthFilename.has_value()) {
         std::optional<Dav1dPicture> empty{};
-        saveImage(log, outputDepthFilename.value(), fileBox, depthImg, empty);
+        std::optional<MatrixType> emptyMatrix{};
+        MatrixType const depthMatrix = calcMatrix(fileBox, depthID.value(), depthImg);
+        saveImage(log, outputDepthFilename.value(), fileBox, depthImg, depthMatrix, empty, emptyMatrix);
         log.info(" Extracted: %s -> %s (Depth image)", inputFilename, outputDepthFilename.value());
       }
     }else{
@@ -263,7 +287,7 @@ int _main(int argc, char** argv) {
     }
   }
   // Write to file.
-  saveImage(log, outputFilename, fileBox, primaryImg, alphaImg);
+  saveImage(log, outputFilename, fileBox, primaryImg, primaryMatrix, alphaImg, alphaMatrix);
 
   dav1d_picture_unref(&primaryImg);
   if(alphaImg.has_value()) {
