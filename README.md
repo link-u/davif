@@ -60,6 +60,8 @@ Example avif files are available in [AOMediaCodec/av1-avif](https://github.com/A
 
 ## TODO
 
+ - ICC Profile
+ - Exif Profile
  - Add more and more command-line flags.
 
 # Related repositories

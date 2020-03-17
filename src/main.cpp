@@ -12,7 +12,6 @@
 #include <avif/img/Conversion.hpp>
 #include <avif/img/Crop.hpp>
 #include <avif/img/Transform.hpp>
-#include <avif/av1/SequenceHeader.hpp>
 #include <thread>
 #include <avif/Query.hpp>
 
@@ -20,7 +19,7 @@
 #include "img/PNGWriter.hpp"
 #include "img/Conversion.hpp"
 
-using MatrixType = avif::av1::SequenceHeader::ColorConfig::MatrixCoefficients;
+using MatrixType = avif::img::MatrixCoefficients;
 
 namespace {
 

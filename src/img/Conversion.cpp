@@ -3,10 +3,9 @@
 //
 
 #include <fmt/format.h>
-#include <avif/img/Conversion.hpp>
 #include "Conversion.hpp"
 
-using MatrixType = avif::av1::SequenceHeader::ColorConfig::MatrixCoefficients;
+using MatrixType = avif::img::MatrixCoefficients;
 
 template <MatrixType matrixType, size_t rgbBits, size_t yuvBits, bool toMonoRGB, bool isFullRange>
 void writeImage(avif::img::Image<rgbBits>& dst, Dav1dPicture& src) {
@@ -136,7 +135,7 @@ template <MatrixType matrixTypeRGB, MatrixType matrixTypeA>
 template <MatrixType matrixTypeRGB>
 std::variant<avif::img::Image<8>, avif::img::Image<16>> createImage(
     Dav1dPicture& primary,
-    std::optional<Dav1dPicture>& alpha, std::optional<avif::av1::SequenceHeader::ColorConfig::MatrixCoefficients>& alphaMatrix)
+    std::optional<Dav1dPicture>& alpha, std::optional<MatrixType>& alphaMatrix)
 {
   switch (alphaMatrix.value_or(MatrixType::MC_UNSPECIFIED)) {
     case MatrixType::MC_IDENTITY:
@@ -172,8 +171,8 @@ std::variant<avif::img::Image<8>, avif::img::Image<16>> createImage(
 }
 
 std::variant<avif::img::Image<8>, avif::img::Image<16>> createImage(
-    Dav1dPicture& primary, avif::av1::SequenceHeader::ColorConfig::MatrixCoefficients primaryMatrix,
-    std::optional<Dav1dPicture>& alpha, std::optional<avif::av1::SequenceHeader::ColorConfig::MatrixCoefficients>& alphaMatrix)
+    Dav1dPicture& primary, MatrixType primaryMatrix,
+    std::optional<Dav1dPicture>& alpha, std::optional<MatrixType>& alphaMatrix)
 {
   switch (primaryMatrix) {
     case MatrixType::MC_IDENTITY:
