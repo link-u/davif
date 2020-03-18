@@ -47,8 +47,8 @@ make davif
 
 ```bash
 % davif
-[2020/02/25 06:46:09 INFO ] davif
-[2020/02/25 06:46:09 DEBUG]  - dav1d ver: 0.5.2-75-g8974c15
+[2020/03/18 15:40:21 INFO ] davif
+[2020/03/18 15:40:21 DEBUG]  - dav1d ver: 0.6.0-13-gfe52bff
 SYNOPSIS
         davif -i <input.avif> -o <output.png> [--extract-alpha <output-alpha.png>] [--extract-depth
               <output-depth.png>] [--threads <Num of threads to use>]
