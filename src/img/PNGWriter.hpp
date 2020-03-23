@@ -51,7 +51,13 @@ public:
         color_type = PNG_COLOR_TYPE_GRAY_ALPHA;
         break;
     }
-
+    if(std::holds_alternative<avif::img::ICCProfile>(img.colorProfile())){
+      avif::img::ICCProfile const& icc = std::get<avif::img::ICCProfile>(img.colorProfile());
+      png_set_iCCP(p, info_ptr, "ICC Profile", 0, icc.payload().data(), icc.payload().size());
+    }else if(std::holds_alternative<avif::img::RestrictedICCProfile>(img.colorProfile())) {
+      avif::img::RestrictedICCProfile const &icc = std::get<avif::img::RestrictedICCProfile>(img.colorProfile());
+      png_set_iCCP(p, info_ptr, "ICC Profile", 0, icc.payload().data(), icc.payload().size());
+    }
     png_set_IHDR(p, info_ptr, w, h, BitsPerComponent,
                  color_type,
                  PNG_INTERLACE_NONE,

@@ -138,15 +138,30 @@ static void saveImage(avif::util::Logger& log, std::string const& dstPath, avif:
   if(!endsWidh(dstPath, ".png")) {
     log.fatal("Please give png file for output: %s", dstPath);
   }
+  namespace query = avif::util::query;
+  avif::img::ColorProfile colorProfile = {};
+  auto primaryItemID = query::findPrimaryItemID(fileBox).value_or(1);
+  std::optional<avif::ColourInformationBox> colr = query::findProperty<avif::ColourInformationBox>(fileBox, primaryItemID);
+  if(colr.has_value()) {
+    auto profile = colr.value().profile;
+    if(std::holds_alternative<avif::ColourInformationBox::RestrictedICC>(profile)) {
+      colorProfile = avif::img::RestrictedICCProfile(std::get<avif::ColourInformationBox::RestrictedICC>(profile).payload);
+    }else if(std::holds_alternative<avif::ColourInformationBox::RestrictedICC>(profile)) {
+      colorProfile = avif::img::ICCProfile(std::get<avif::ColourInformationBox::UnrestrictedICC>(profile).payload);
+    }
+  }
+
   std::optional<std::string> writeResult;
   std::variant<avif::img::Image<8>, avif::img::Image<16>> encoded = createImage(primary, primaryMatrix, alpha, alphaMatrix);
   if(std::holds_alternative<avif::img::Image<8>>(encoded)) {
     auto& img = std::get<avif::img::Image<8>>(encoded);
     img = applyTransform(std::move(img), fileBox);
+    img.colorProfile() = colorProfile;
     writeResult = PNGWriter(log, dstPath).write(img);
   } else {
     auto& img = std::get<avif::img::Image<16>>(encoded);
     img = applyTransform(std::move(img), fileBox);
+    img.colorProfile() = colorProfile;
     writeResult = PNGWriter(log, dstPath).write(img);
   }
   if(writeResult.has_value()) {
