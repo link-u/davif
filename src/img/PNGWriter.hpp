@@ -34,8 +34,8 @@ public:
     const size_t w = img.width();
     const size_t h = img.height();
     const size_t stride = img.stride();
-    png_structp p = png_create_write_struct(PNG_LIBPNG_VER_STRING, nullptr, nullptr, nullptr);
-    png_infop info_ptr = png_create_info_struct(p);
+    png_structp png = png_create_write_struct(PNG_LIBPNG_VER_STRING, nullptr, nullptr, nullptr);
+    png_infop info = png_create_info_struct(png);
     int color_type = PNG_COLOR_TYPE_GRAY;
     switch(img.pixelOrder()) {
       case avif::img::PixelOrder::RGB:
@@ -51,28 +51,33 @@ public:
         color_type = PNG_COLOR_TYPE_GRAY_ALPHA;
         break;
     }
-    if(std::holds_alternative<avif::img::ICCProfile>(img.colorProfile())){
-      avif::img::ICCProfile const& icc = std::get<avif::img::ICCProfile>(img.colorProfile());
-      png_set_iCCP(p, info_ptr, "ICC Profile", 0, icc.payload().data(), icc.payload().size());
-    }else if(std::holds_alternative<avif::img::RestrictedICCProfile>(img.colorProfile())) {
-      avif::img::RestrictedICCProfile const &icc = std::get<avif::img::RestrictedICCProfile>(img.colorProfile());
-      png_set_iCCP(p, info_ptr, "ICC Profile", 0, icc.payload().data(), icc.payload().size());
-    }
-    png_set_IHDR(p, info_ptr, w, h, BitsPerComponent,
+    png_set_IHDR(png, info, w, h, BitsPerComponent,
                  color_type,
                  PNG_INTERLACE_NONE,
                  PNG_COMPRESSION_TYPE_DEFAULT,
                  PNG_FILTER_TYPE_DEFAULT);
+
+    if(std::holds_alternative<avif::img::ICCProfile>(img.colorProfile())){
+      avif::img::ICCProfile const& icc = std::get<avif::img::ICCProfile>(img.colorProfile());
+      png_set_benign_errors(png, 1);
+      png_set_iCCP(png, info, "ICC Profile", 0, icc.payload().data(), icc.payload().size());
+      png_set_benign_errors(png, 0);
+    }else if(std::holds_alternative<avif::img::RestrictedICCProfile>(img.colorProfile())) {
+      avif::img::RestrictedICCProfile const &icc = std::get<avif::img::RestrictedICCProfile>(img.colorProfile());
+      png_set_benign_errors(png, 1);
+      png_set_iCCP(png, info, "ICC Profile", 0, icc.payload().data(), icc.payload().size());
+      png_set_benign_errors(png, 0);
+    }
     std::vector<uint8_t *> rows;
     rows.resize(h);
     for(int y = 0; y < h; ++y) {
       rows[y] = img.data() + (stride * y);
     }
-    png_set_rows(p, info_ptr, rows.data());
+    png_set_rows(png, info, rows.data());
     avif::util::StreamWriter out;
-    png_set_write_fn(p, &out, PNGWriter::png_write_callback_, nullptr);
-    png_write_png(p, info_ptr, BitsPerComponent == 16 ? PNG_TRANSFORM_SWAP_ENDIAN : PNG_TRANSFORM_IDENTITY, nullptr);
-    png_destroy_write_struct(&p, nullptr);
+    png_set_write_fn(png, &out, PNGWriter::png_write_callback_, nullptr);
+    png_write_png(png, info, BitsPerComponent == 16 ? PNG_TRANSFORM_SWAP_ENDIAN : PNG_TRANSFORM_IDENTITY, nullptr);
+    png_destroy_write_struct(&png, nullptr);
     auto result = avif::util::writeFile(filename_, out.buffer());
     return std::move(result);
   }

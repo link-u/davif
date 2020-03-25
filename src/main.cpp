@@ -146,7 +146,7 @@ static void saveImage(avif::util::Logger& log, std::string const& dstPath, avif:
     auto profile = colr.value().profile;
     if(std::holds_alternative<avif::ColourInformationBox::RestrictedICC>(profile)) {
       colorProfile = avif::img::RestrictedICCProfile(std::get<avif::ColourInformationBox::RestrictedICC>(profile).payload);
-    }else if(std::holds_alternative<avif::ColourInformationBox::RestrictedICC>(profile)) {
+    }else if(std::holds_alternative<avif::ColourInformationBox::UnrestrictedICC>(profile)) {
       colorProfile = avif::img::ICCProfile(std::get<avif::ColourInformationBox::UnrestrictedICC>(profile).payload);
     }
   }
