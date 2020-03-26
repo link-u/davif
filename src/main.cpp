@@ -85,7 +85,7 @@ avif::img::Image<BitsPerComponent> applyTransform(avif::img::Image<BitsPerCompon
   std::optional<avif::ImageRotationBox> irot = findBox<avif::ImageRotationBox>(fileBox, itemID);
   std::optional<avif::ImageMirrorBox> imir = findBox<avif::ImageMirrorBox>(fileBox, itemID);
   if(!clap.has_value() && !irot.has_value() && !imir.has_value()) {
-    return std::move(img);
+    return img;
   }
   // ISO/IEC 23000-22:2019(E)
   // p.16
@@ -102,7 +102,7 @@ avif::img::Image<BitsPerComponent> applyTransform(avif::img::Image<BitsPerCompon
   if(imir.has_value()) {
     img = avif::img::flip(img, imir.value().axis);
   }
-  return std::move(img);
+  return img;
 }
 }
 

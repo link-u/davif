@@ -56,7 +56,7 @@ avif::img::Image<rgbBits> convertToRGB(Dav1dPicture& primary) {
   } else {
     writeImage<matrixType, rgbBits, yuvBits, false>(img, primary);
   }
-  return std::move(img);
+  return img;
 }
 
 template <MatrixType matrixTypeRGB, MatrixType matrixTypeA, size_t rgbBits, size_t yuvBits, size_t monoBits>
@@ -75,7 +75,7 @@ avif::img::Image<rgbBits> convertToRGBA(Dav1dPicture& primary, Dav1dPicture& alp
   } else {
     writeAlpha<matrixTypeA, rgbBits, monoBits, true>(img, alpha);
   }
-  return std::move(img);
+  return img;
 }
 
 template <MatrixType matrixTypeRGB, MatrixType matrixTypeA, size_t rgbBits, size_t yuvBits>

@@ -79,7 +79,7 @@ public:
     png_write_png(png, info, BitsPerComponent == 16 ? PNG_TRANSFORM_SWAP_ENDIAN : PNG_TRANSFORM_IDENTITY, nullptr);
     png_destroy_write_struct(&png, nullptr);
     auto result = avif::util::writeFile(filename_, out.buffer());
-    return std::move(result);
+    return result;
   }
 
 private:
