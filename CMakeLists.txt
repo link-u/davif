@@ -75,6 +75,44 @@ ELSE()
             )
 ENDIF()
 ###############################################################################
+find_program(MAKE_EXE NAMES gmake nmake make)
+
+IF(CMAKE_BUILD_TYPE MATCHES Release)
+    ExternalProject_Add(lcms_repo
+        PREFIX "${CMAKE_BINARY_DIR}"
+        URL "${CMAKE_SOURCE_DIR}/external/Little-CMS"
+        CONFIGURE_COMMAND
+        ${CMAKE_SOURCE_DIR}/external/Little-CMS/configure
+        --prefix=${CMAKE_BINARY_DIR}
+        --enable-static
+        --disable-shared
+        --without-zlib
+        --without-threads
+        --without-jpeg
+        --without-tiff
+        BUILD_COMMAND ${MAKE_EXE}
+        INSTALL_DIR ${CMAKE_BINARY_DIR}
+        INSTALL_COMMAND make install
+        )
+ELSE()
+    ExternalProject_Add(lcms_repo
+        PREFIX "${CMAKE_BINARY_DIR}"
+        URL "${CMAKE_SOURCE_DIR}/external/Little-CMS"
+        CONFIGURE_COMMAND
+        env "CFLAGS=${CMAKE_CXX_FLAGS_DEBUG}" ${CMAKE_SOURCE_DIR}/external/Little-CMS/configure
+        --prefix=${CMAKE_BINARY_DIR}
+        --enable-static
+        --disable-shared
+        --without-zlib
+        --without-threads
+        --without-jpeg
+        --without-tiff
+        BUILD_COMMAND ${MAKE_EXE}
+        INSTALL_DIR ${CMAKE_BINARY_DIR}
+        INSTALL_COMMAND make install
+        )
+ENDIF()
+###############################################################################
 
 add_executable(davif
         src/img/Conversion.cpp
@@ -87,13 +125,15 @@ add_executable(davif
 )
 
 add_dependencies(davif dav1d_repo)
+add_dependencies(davif lcms_repo)
 
 target_include_directories(davif PRIVATE external/libpng)
 target_include_directories(davif PRIVATE "${CMAKE_BINARY_DIR}/include")
 target_include_directories(davif PRIVATE external/libavif-container/src)
 target_include_directories(davif PRIVATE external/libyuv/include)
-target_link_directories(davif PRIVATE "${CMAKE_BINARY_DIR}/lib")
 
+target_link_directories(davif PRIVATE "${CMAKE_BINARY_DIR}/lib")
+target_link_libraries(davif PRIVATE lcms2)
 target_link_libraries(davif PRIVATE libavif-container)
 target_link_libraries(davif PRIVATE fmt::fmt)
 target_link_libraries(davif PRIVATE zlibstatic)
