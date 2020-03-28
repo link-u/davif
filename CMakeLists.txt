@@ -92,7 +92,7 @@ IF(CMAKE_BUILD_TYPE MATCHES Release)
         --without-tiff
         BUILD_COMMAND ${MAKE_EXE}
         INSTALL_DIR ${CMAKE_BINARY_DIR}
-        INSTALL_COMMAND make install
+        INSTALL_COMMAND ${MAKE_EXE} install
         )
 ELSE()
     ExternalProject_Add(lcms_repo
@@ -109,7 +109,7 @@ ELSE()
         --without-tiff
         BUILD_COMMAND ${MAKE_EXE}
         INSTALL_DIR ${CMAKE_BINARY_DIR}
-        INSTALL_COMMAND make install
+        INSTALL_COMMAND ${MAKE_EXE} install
         )
 ENDIF()
 ###############################################################################
