@@ -7,11 +7,6 @@ set(CMAKE_CXX_FLAGS_DEBUG "-g3 -O0 -fno-omit-frame-pointer")
 ###############################################################################
 add_subdirectory(external/libavif-container EXCLUDE_FROM_ALL)
 ###############################################################################
-# fmt
-set(FMT_TEST OFF CACHE BOOL "" FORCE)
-set(FMT_FUZZ OFF CACHE BOOL "" FORCE)
-add_subdirectory(external/fmt EXCLUDE_FROM_ALL)
-###############################################################################
 # zlib
 set(ASM686L OFF CACHE BOOL "Enable building i686 assembly implementation" FORCE)
 set(ASM686 OFF CACHE BOOL "Enable building amd64 assembly implementation" FORCE)
@@ -73,44 +68,6 @@ ELSE()
             INSTALL_DIR ${CMAKE_BINARY_DIR}
             INSTALL_COMMAND ninja install -C "${CMAKE_BINARY_DIR}/build-dav1d"
             )
-ENDIF()
-###############################################################################
-find_program(MAKE_EXE NAMES gmake nmake make)
-
-IF(CMAKE_BUILD_TYPE MATCHES Release)
-    ExternalProject_Add(lcms_repo
-        PREFIX "${CMAKE_BINARY_DIR}"
-        URL "${CMAKE_SOURCE_DIR}/external/Little-CMS"
-        CONFIGURE_COMMAND
-        ${CMAKE_SOURCE_DIR}/external/Little-CMS/configure
-        --prefix=${CMAKE_BINARY_DIR}
-        --enable-static
-        --disable-shared
-        --without-zlib
-        --without-threads
-        --without-jpeg
-        --without-tiff
-        BUILD_COMMAND ${MAKE_EXE}
-        INSTALL_DIR ${CMAKE_BINARY_DIR}
-        INSTALL_COMMAND ${MAKE_EXE} install
-        )
-ELSE()
-    ExternalProject_Add(lcms_repo
-        PREFIX "${CMAKE_BINARY_DIR}"
-        URL "${CMAKE_SOURCE_DIR}/external/Little-CMS"
-        CONFIGURE_COMMAND
-        env "CFLAGS=${CMAKE_CXX_FLAGS_DEBUG}" ${CMAKE_SOURCE_DIR}/external/Little-CMS/configure
-        --prefix=${CMAKE_BINARY_DIR}
-        --enable-static
-        --disable-shared
-        --without-zlib
-        --without-threads
-        --without-jpeg
-        --without-tiff
-        BUILD_COMMAND ${MAKE_EXE}
-        INSTALL_DIR ${CMAKE_BINARY_DIR}
-        INSTALL_COMMAND ${MAKE_EXE} install
-        )
 ENDIF()
 ###############################################################################
 
