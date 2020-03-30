@@ -11,5 +11,5 @@
 #include <avif/img/Image.hpp>
 
 std::variant<avif::img::Image<8>, avif::img::Image<16>> createImage(
-    Dav1dPicture& primary, avif::img::MatrixCoefficients primaryMatrix,
-    std::optional<Dav1dPicture>& alpha, std::optional<avif::img::MatrixCoefficients>& alphaMatrix);
+    Dav1dPicture& primary, avif::img::ColorProfile const& primaryProfile,
+    std::optional<std::tuple<Dav1dPicture&, avif::img::ColorProfile const&>> alpha);

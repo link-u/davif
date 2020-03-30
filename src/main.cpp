@@ -14,6 +14,7 @@
 #include <avif/img/Transform.hpp>
 #include <thread>
 #include <avif/Query.hpp>
+#include <iostream>
 
 #include "../external/clipp/include/clipp.h"
 #include "img/PNGWriter.hpp"
@@ -62,17 +63,25 @@ std::optional<T> findBox(avif::FileBox const& fileBox, uint32_t itemID) {
   return std::optional<T>();
 }
 
-MatrixType calcMatrix(avif::FileBox const& fileBox, uint32_t const itemID, Dav1dPicture const& pic) {
+avif::img::ColorProfile calcColorProfile(avif::FileBox const& fileBox, uint32_t const itemID, Dav1dPicture const& pic) {
   namespace query = avif::util::query;
-  auto colr = query::findProperty<avif::ColourInformationBox>(fileBox, itemID);
-  if(!colr.has_value()){
-    return static_cast<MatrixType>(pic.seq_hdr->mtrx);
+  std::optional<avif::ColourInformationBox> colr = query::findProperty<avif::ColourInformationBox>(fileBox, itemID);
+  if(colr.has_value()) {
+    auto profile = colr.value().profile;
+    if(std::holds_alternative<avif::ColourInformationBox::RestrictedICC>(profile)) {
+      return avif::img::ICCProfile(std::get<avif::ColourInformationBox::RestrictedICC>(profile).payload);
+    }else if(std::holds_alternative<avif::ColourInformationBox::UnrestrictedICC>(profile)) {
+      return avif::img::ICCProfile(std::get<avif::ColourInformationBox::UnrestrictedICC>(profile).payload);
+    }else if(std::holds_alternative<avif::ColourInformationBox::NCLX>(profile)) {
+      return std::get<avif::ColourInformationBox::NCLX>(profile);
+    }
   }
-  auto const& profile = colr.value().profile;
-  if(!std::holds_alternative<avif::ColourInformationBox::NCLX>(profile)){
-    return static_cast<MatrixType>(pic.seq_hdr->mtrx);
-  }
-  return static_cast<MatrixType>(std::get<avif::ColourInformationBox::NCLX>(profile).matrixCoefficients);
+  return avif::ColourInformationBox::NCLX {
+    .colourPrimaries = static_cast<uint16_t>(pic.seq_hdr->pri),
+    .transferCharacteristics = static_cast<uint16_t>(pic.seq_hdr->trc),
+    .matrixCoefficients = static_cast<uint16_t>(pic.seq_hdr->mtrx),
+    .fullRangeFlag = pic.seq_hdr->color_range == 1,
+  };
 }
 
 template <size_t BitsPerComponent>
@@ -134,34 +143,22 @@ unsigned int decodeImageAt(avif::util::Logger& log, std::shared_ptr<avif::Parser
   }
 }
 
-static void saveImage(avif::util::Logger& log, std::string const& dstPath, avif::FileBox const& fileBox, Dav1dPicture& primary, MatrixType const primaryMatrix, std::optional<Dav1dPicture>& alpha, std::optional<MatrixType>& alphaMatrix) {
+static void saveImage(avif::util::Logger& log, std::string const& dstPath, avif::FileBox const& fileBox, Dav1dPicture& primary, avif::img::ColorProfile primaryProfile, std::optional<std::tuple<Dav1dPicture&, avif::img::ColorProfile const&>> alpha) {
   if(!endsWidh(dstPath, ".png")) {
     log.fatal("Please give png file for output: %s", dstPath);
   }
-  namespace query = avif::util::query;
-  avif::img::ColorProfile colorProfile = {};
-  auto primaryItemID = query::findPrimaryItemID(fileBox).value_or(1);
-  std::optional<avif::ColourInformationBox> colr = query::findProperty<avif::ColourInformationBox>(fileBox, primaryItemID);
-  if(colr.has_value()) {
-    auto profile = colr.value().profile;
-    if(std::holds_alternative<avif::ColourInformationBox::RestrictedICC>(profile)) {
-      colorProfile = avif::img::RestrictedICCProfile(std::get<avif::ColourInformationBox::RestrictedICC>(profile).payload);
-    }else if(std::holds_alternative<avif::ColourInformationBox::UnrestrictedICC>(profile)) {
-      colorProfile = avif::img::ICCProfile(std::get<avif::ColourInformationBox::UnrestrictedICC>(profile).payload);
-    }
-  }
 
   std::optional<std::string> writeResult;
-  std::variant<avif::img::Image<8>, avif::img::Image<16>> encoded = createImage(primary, primaryMatrix, alpha, alphaMatrix);
+  std::variant<avif::img::Image<8>, avif::img::Image<16>> encoded = createImage(primary, primaryProfile, alpha);
   if(std::holds_alternative<avif::img::Image<8>>(encoded)) {
     auto& img = std::get<avif::img::Image<8>>(encoded);
     img = applyTransform(std::move(img), fileBox);
-    img.colorProfile() = colorProfile;
+    img.colorProfile() = primaryProfile;
     writeResult = PNGWriter(log, dstPath).write(img);
   } else {
     auto& img = std::get<avif::img::Image<16>>(encoded);
     img = applyTransform(std::move(img), fileBox);
-    img.colorProfile() = colorProfile;
+    img.colorProfile() = primaryProfile;
     writeResult = PNGWriter(log, dstPath).write(img);
   }
   if(writeResult.has_value()) {
@@ -240,15 +237,16 @@ int _main(int argc, char** argv) {
   // start decoding
   avif::FileBox const& fileBox = res->fileBox();
   Dav1dPicture primaryImg{};
-  std::optional<Dav1dPicture> alphaImg;
-  std::optional<MatrixType > alphaMatrix;
+  std::optional<Dav1dPicture> alphaImg{};
   namespace query = avif::util::query;
   uint32_t const primaryImageID = query::findPrimaryItemID(fileBox).value_or(1);
   { // primary image
     unsigned int elapsed = decodeImageAt(log, res, primaryImageID, ctx, primaryImg);
     log.info(" Decoded: %s -> %s in %d [ms]", inputFilename, outputFilename, elapsed);
   }
-  MatrixType const primaryMatrix = calcMatrix(fileBox, primaryImageID, primaryImg);
+  auto primaryItemID = query::findPrimaryItemID(fileBox).value_or(1);
+  avif::img::ColorProfile primaryProfile = calcColorProfile(fileBox, primaryItemID, primaryImg);
+  avif::img::ColorProfile alphaProfile = {};
 
   { // alpha image
     std::optional<uint32_t> alphaID = query::findAuxItemID(fileBox, primaryImageID, avif::kAlphaAuxType());
@@ -263,10 +261,8 @@ int _main(int argc, char** argv) {
                   alphaImg.value().p.w, alphaImg.value().p.h, primaryImg.p.w, primaryImg.p.h);
       }
       if(outputAlphaFilename.has_value()) {
-        alphaMatrix = calcMatrix(fileBox, alphaID.value(), alphaImg.value());
-        std::optional<Dav1dPicture> empty{};
-        std::optional<MatrixType> emptyMatrix{};
-        saveImage(log, outputAlphaFilename.value(), fileBox, alphaImg.value(), alphaMatrix.value(), empty, emptyMatrix);
+        alphaProfile = calcColorProfile(fileBox, alphaID.value(), alphaImg.value());
+        saveImage(log, outputAlphaFilename.value(), fileBox, alphaImg.value(), alphaProfile, std::optional<std::tuple<Dav1dPicture&, avif::img::ColorProfile const&>>());
         log.info(" Extracted: %s -> %s (Alpha image)", inputFilename, outputAlphaFilename.value());
       }
     } else {
@@ -288,10 +284,8 @@ int _main(int argc, char** argv) {
                   depthImg.p.w, depthImg.p.h, primaryImg.p.w, primaryImg.p.h);
       }
       if(outputDepthFilename.has_value()) {
-        std::optional<Dav1dPicture> empty{};
-        std::optional<MatrixType> emptyMatrix{};
-        MatrixType const depthMatrix = calcMatrix(fileBox, depthID.value(), depthImg);
-        saveImage(log, outputDepthFilename.value(), fileBox, depthImg, depthMatrix, empty, emptyMatrix);
+        auto depthProfile = calcColorProfile(fileBox, depthID.value(), depthImg);
+        saveImage(log, outputDepthFilename.value(), fileBox, depthImg, depthProfile, std::optional<std::tuple<Dav1dPicture&, avif::img::ColorProfile const&>>());
         log.info(" Extracted: %s -> %s (Depth image)", inputFilename, outputDepthFilename.value());
       }
     }else{
@@ -301,7 +295,12 @@ int _main(int argc, char** argv) {
     }
   }
   // Write to file.
-  saveImage(log, outputFilename, fileBox, primaryImg, primaryMatrix, alphaImg, alphaMatrix);
+  if(alphaImg.has_value()) {
+    std::optional<std::tuple<Dav1dPicture&, avif::img::ColorProfile const&>> alpha = std::make_optional(std::tuple<Dav1dPicture&, avif::img::ColorProfile const&>(alphaImg.value(), alphaProfile));
+    saveImage(log, outputFilename, fileBox, primaryImg, primaryProfile, alpha);
+  } else {
+    saveImage(log, outputFilename, fileBox, primaryImg, primaryProfile, std::optional<std::tuple<Dav1dPicture&, avif::img::ColorProfile const&>>());
+  }
 
   dav1d_picture_unref(&primaryImg);
   if(alphaImg.has_value()) {

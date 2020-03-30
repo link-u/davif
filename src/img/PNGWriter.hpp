@@ -62,11 +62,6 @@ public:
       png_set_benign_errors(png, 1);
       png_set_iCCP(png, info, "ICC Profile", 0, icc.payload().data(), icc.payload().size());
       png_set_benign_errors(png, 0);
-    }else if(std::holds_alternative<avif::img::RestrictedICCProfile>(img.colorProfile())) {
-      avif::img::RestrictedICCProfile const &icc = std::get<avif::img::RestrictedICCProfile>(img.colorProfile());
-      png_set_benign_errors(png, 1);
-      png_set_iCCP(png, info, "ICC Profile", 0, icc.payload().data(), icc.payload().size());
-      png_set_benign_errors(png, 0);
     }
     std::vector<uint8_t *> rows;
     rows.resize(h);
