@@ -131,12 +131,12 @@ unsigned int decodeImageAt(avif::util::Logger& log, std::shared_ptr<avif::Parser
     int err = dav1d_send_data(ctx, &data);
 
     if(err < 0) {
-      log.fatal( "Failed to send data to dav1d: %d\n", err);
+      log.fatal( "Failed to send data to dav1d: {}\n", err);
     }
 
     err = dav1d_get_picture(ctx, &pic);
     if (err < 0) {
-      log.error("Failed to decode dav1d: %d\n", err);
+      log.error("Failed to decode dav1d: {}\n", err);
     }
     auto finish = std::chrono::steady_clock::now();
     return std::chrono::duration_cast<std::chrono::milliseconds>(finish-start).count();
@@ -145,7 +145,7 @@ unsigned int decodeImageAt(avif::util::Logger& log, std::shared_ptr<avif::Parser
 
 static void saveImage(avif::util::Logger& log, std::string const& dstPath, avif::FileBox const& fileBox, Dav1dPicture& primary, avif::img::ColorProfile primaryProfile, std::optional<std::tuple<Dav1dPicture&, avif::img::ColorProfile const&>> alpha) {
   if(!endsWidh(dstPath, ".png")) {
-    log.fatal("Please give png file for output: %s", dstPath);
+    log.fatal("Please give png file for output: {}", dstPath);
   }
 
   std::optional<std::string> writeResult;
@@ -162,7 +162,7 @@ static void saveImage(avif::util::Logger& log, std::string const& dstPath, avif:
     writeResult = PNGWriter(log, dstPath).write(img);
   }
   if(writeResult.has_value()) {
-    log.fatal("Failed to write PNG: %s", writeResult.value());
+    log.fatal("Failed to write PNG: {}", writeResult.value());
   }
 }
 
@@ -184,7 +184,7 @@ int _main(int argc, char** argv) {
   avif::util::FileLogger log(stdout, stderr, avif::util::Logger::DEBUG);
 
   log.info("davif");
-  log.debug(" - dav1d ver: %s", dav1d_version());
+  log.debug(" - dav1d ver: {}", dav1d_version());
 
   // Init dav1d
   Dav1dSettings settings{};
@@ -217,23 +217,23 @@ int _main(int argc, char** argv) {
   Dav1dContext* ctx{};
   int err = dav1d_open(&ctx, &settings);
   if(err != 0) {
-    log.fatal("Failed to open dav1d: %d\n", err);
+    log.fatal("Failed to open dav1d: {}\n", err);
   }
 
   // Read file.
   std::variant<std::vector<uint8_t>, std::string> avif_data = avif::util::readFile(inputFilename);
   if(std::holds_alternative<std::string>(avif_data)){
-    log.fatal("Failed to open input: %s\n", std::get<1>(avif_data));
+    log.fatal("Failed to open input: {}\n", std::get<1>(avif_data));
   }
 
   // parse ISOBMFF
   avif::Parser parser(log, std::move(std::get<0>(avif_data)));
   std::shared_ptr<avif::Parser::Result> res = parser.parse();
   if (!res->ok()) {
-    log.fatal("Failed to parse %s as avif: %s\n", inputFilename, res->error());
+    log.fatal("Failed to parse {} as avif: {}\n", inputFilename, res->error());
   }
 
-  log.info("Decoding: %s -> %s", inputFilename, outputFilename);
+  log.info("Decoding: {} -> {}", inputFilename, outputFilename);
   // start decoding
   avif::FileBox const& fileBox = res->fileBox();
   Dav1dPicture primaryImg{};
@@ -242,7 +242,7 @@ int _main(int argc, char** argv) {
   uint32_t const primaryImageID = query::findPrimaryItemID(fileBox).value_or(1);
   { // primary image
     unsigned int elapsed = decodeImageAt(log, res, primaryImageID, ctx, primaryImg);
-    log.info(" Decoded: %s -> %s in %d [ms]", inputFilename, outputFilename, elapsed);
+    log.info(" Decoded: {} -> {} in {} [ms]", inputFilename, outputFilename, elapsed);
   }
   auto primaryItemID = query::findPrimaryItemID(fileBox).value_or(1);
   avif::img::ColorProfile primaryProfile = calcColorProfile(fileBox, primaryItemID, primaryImg);
@@ -253,21 +253,21 @@ int _main(int argc, char** argv) {
     if(alphaID.has_value()) {
       alphaImg = Dav1dPicture{};
       unsigned int elapsed = decodeImageAt(log, res, alphaID.value(), ctx, alphaImg.value());
-      log.info(" Decoded: %s -> %s in %d [ms] (Alpha image)", inputFilename, outputFilename, elapsed);
+      log.info(" Decoded: {} -> {} in {} [ms] (Alpha image)", inputFilename, outputFilename, elapsed);
       if(alphaImg.value().p.w != primaryImg.p.w || alphaImg.value().p.h != primaryImg.p.h) {
         // TODO(ledyba-z): It is okay to alpha image and primary image are different sizes.
         //  see: https://github.com/AOMediaCodec/av1-avif/issues/68
-        log.fatal("Currently, alpha image whose size (%d x %d) does not match to primary image (%d x %d) is not supported.",
+        log.fatal("Currently, alpha image whose size ({} x {}) does not match to primary image ({} x {}) is not supported.",
                   alphaImg.value().p.w, alphaImg.value().p.h, primaryImg.p.w, primaryImg.p.h);
       }
       if(outputAlphaFilename.has_value()) {
         alphaProfile = calcColorProfile(fileBox, alphaID.value(), alphaImg.value());
         saveImage(log, outputAlphaFilename.value(), fileBox, alphaImg.value(), alphaProfile, std::optional<std::tuple<Dav1dPicture&, avif::img::ColorProfile const&>>());
-        log.info(" Extracted: %s -> %s (Alpha image)", inputFilename, outputAlphaFilename.value());
+        log.info(" Extracted: {} -> {} (Alpha image)", inputFilename, outputAlphaFilename.value());
       }
     } else {
       if(outputAlphaFilename.has_value()) {
-        log.fatal("%s does not have alpha plane.", inputFilename);
+        log.fatal("{} does not have alpha plane.", inputFilename);
       }
     }
   }
@@ -276,21 +276,21 @@ int _main(int argc, char** argv) {
     if(depthID.has_value()) {
       Dav1dPicture depthImg = {};
       unsigned int elapsed = decodeImageAt(log, res, depthID.value(), ctx, depthImg);
-      log.info(" Decoded: %s in %d [ms] (Depth image)", inputFilename, elapsed);
+      log.info(" Decoded: {} in {} [ms] (Depth image)", inputFilename, elapsed);
       if(depthImg.p.w != primaryImg.p.w || depthImg.p.h != primaryImg.p.h) {
         // TODO(ledyba-z): Can alpha image and primary image be different size?
         //  see: https://github.com/AOMediaCodec/av1-avif/issues/68
-        log.fatal("Alpha size (%d x %d) does not match to primary image(%d x %d).",
+        log.fatal("Alpha size ({} x {}) does not match to primary image({} x {}).",
                   depthImg.p.w, depthImg.p.h, primaryImg.p.w, primaryImg.p.h);
       }
       if(outputDepthFilename.has_value()) {
         auto depthProfile = calcColorProfile(fileBox, depthID.value(), depthImg);
         saveImage(log, outputDepthFilename.value(), fileBox, depthImg, depthProfile, std::optional<std::tuple<Dav1dPicture&, avif::img::ColorProfile const&>>());
-        log.info(" Extracted: %s -> %s (Depth image)", inputFilename, outputDepthFilename.value());
+        log.info(" Extracted: {} -> {} (Depth image)", inputFilename, outputDepthFilename.value());
       }
     }else{
       if(outputDepthFilename.has_value()) {
-        log.fatal("%s does not have depth plane.", inputFilename);
+        log.fatal("{} does not have depth plane.", inputFilename);
       }
     }
   }
