@@ -42,6 +42,15 @@ std::string basename(std::string const& path) {
 void nop_free_callback(const uint8_t *buf, void *cookie) {
 }
 
+void log_callback(void *cookie, const char *format, va_list ap) {
+  auto* const log = static_cast<avif::util::Logger *>(cookie);
+  auto const len = vsnprintf(nullptr, 0, format, ap);
+  std::string buff;
+  buff.resize(len);
+  vsnprintf(buff.data(), len, format, ap);
+  log->info("[dav1d] {}", buff);
+}
+
 template <typename T>
 std::optional<T> findBox(avif::FileBox const& fileBox, uint32_t itemID) {
   for(auto const& assoc : fileBox.metaBox.itemPropertiesBox.associations){
@@ -189,6 +198,8 @@ int _main(int argc, char** argv) {
   // Init dav1d
   Dav1dSettings settings{};
   dav1d_default_settings(&settings);
+  settings.logger.cookie = &log;
+  settings.logger.callback = log_callback;
   settings.n_tile_threads = static_cast<int>(std::thread::hardware_concurrency());
 
   std::string inputFilename = {};
