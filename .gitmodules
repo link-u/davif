@@ -3,7 +3,7 @@
 	url = https://code.videolan.org/videolan/dav1d.git
 [submodule "external/libavif-container"]
 	path = external/libavif-container
-	url = git@github.com:link-u/libavif-container.git
+	url = https://github.com/link-u/libavif-container.git
 [submodule "external/libyuv"]
 	path = external/libyuv
 	url = https://chromium.googlesource.com/libyuv/libyuv
@@ -12,14 +12,14 @@
 	url = git://git.code.sf.net/p/libpng/code
 [submodule "external/zlib"]
 	path = external/zlib
-	url = git@github.com:madler/zlib.git
+	url = https://github.com/madler/zlib.git
 	ignore = dirty
 [submodule "external/clipp"]
 	path = external/clipp
-	url = git@github.com:muellan/clipp.git
+	url = https://github.com/muellan/clipp.git
 [submodule "external/fmt"]
 	path = external/fmt
-	url = git@github.com:fmtlib/fmt.git
+	url = https://github.com/fmtlib/fmt.git
 [submodule "external/Little-CMS"]
 	path = external/Little-CMS
-	url = git@github.com:mm2/Little-CMS.git
+	url = https://github.com/mm2/Little-CMS.git
