@@ -39,16 +39,16 @@ jobs:
       - name: configure
         shell: bash
         run: |
-        source venv/bin/activate
-        # Workaround: gcc >= 8.0 is required.
-        case $(lsb_release -cs) in
-          bionic)
-            export CC=gcc-8
-            export CXX=g++-8
-            ;;
-          *) ;;
-        esac
-        cmake -S . -B build
+          source venv/bin/activate
+          # Workaround: gcc >= 8.0 is required.
+          case $(lsb_release -cs) in
+            bionic)
+              export CC=gcc-8
+              export CXX=g++-8
+              ;;
+            *) ;;
+          esac
+          cmake -S . -B build
       - name: make
         shell: bash
         run: |
