@@ -15,7 +15,7 @@
 
 
 %:
-	dh $@ --builddirectory=build --destdir=.
+	dh $@ --builddirectory=build
 
 
 # dh_make generated override targets
@@ -24,3 +24,6 @@
 #	dh_auto_configure -- #	-DCMAKE_LIBRARY_PATH=$(DEB_HOST_MULTIARCH)
 override_dh_auto_configure:
 	dh_auto_configure --
+override_dh_builddeb:
+	dh_builddeb -O--destdir=.
+
