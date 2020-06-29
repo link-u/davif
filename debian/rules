@@ -25,5 +25,5 @@
 override_dh_auto_configure:
 	dh_auto_configure --
 override_dh_builddeb:
-	dh_builddeb -O--destdir=.
+	dh_builddeb --destdir=.
 
