@@ -229,7 +229,7 @@ int _main(int argc, char** argv) {
       return 0;
     }
     if(inputFilename == outputFilename) {
-      std::cerr << make_man_page(cli, basename(std::string(argv[0])));
+      std::cerr << "Input and output can't be the same file!" << std::endl;
       return -1;
     }
   }
