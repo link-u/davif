@@ -206,6 +206,7 @@ int _main(int argc, char** argv) {
   std::string outputFilename = {};
   std::optional<std::string> outputAlphaFilename = {};
   std::optional<std::string> outputDepthFilename = {};
+  bool showHelp = false;
   {
     using namespace clipp;
     auto cli = (
@@ -213,11 +214,16 @@ int _main(int argc, char** argv) {
         required("-o", "--output") & value("output.png", outputFilename),
         option("--extract-alpha") & value("output-alpha.png").call([&](std::string const& path){ outputAlphaFilename = path; }),
         option("--extract-depth") & value("output-depth.png").call([&](std::string const& path){ outputDepthFilename = path; }),
-        option("--threads") & integer("Num of threads to use", settings.n_tile_threads)
+        option("--threads") & integer("Num of threads to use", settings.n_tile_threads),
+        option("--help") & value("Show help and exit.", showHelp)
     );
     if(!parse(argc, argv, cli)) {
       std::cerr << make_man_page(cli, basename(std::string(argv[0])));
       return -1;
+    }
+    if(showHelp) {
+      std::cerr << make_man_page(cli, basename(std::string(argv[0])));
+      return 0;
     }
     if(inputFilename == outputFilename) {
       std::cerr << make_man_page(cli, basename(std::string(argv[0])));

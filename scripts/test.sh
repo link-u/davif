@@ -9,7 +9,6 @@ apt install -y ./artifact/*.deb
 apt show davif
 which davif
 
-# TODO: add "--help" flag to check
-davif || true
+davif --help
 
 ldd $(which davif)
