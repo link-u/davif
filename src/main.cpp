@@ -209,15 +209,18 @@ int _main(int argc, char** argv) {
   bool showHelp = false;
   {
     using namespace clipp;
-    auto cli = (
+    auto convertFlags = (
         required("-i", "--input") & value("input.avif", inputFilename),
         required("-o", "--output") & value("output.png", outputFilename),
         option("--extract-alpha") & value("output-alpha.png").call([&](std::string const& path){ outputAlphaFilename = path; }),
         option("--extract-depth") & value("output-depth.png").call([&](std::string const& path){ outputDepthFilename = path; }),
-        option("--threads") & integer("Num of threads to use", settings.n_tile_threads),
-        option("--help") & value("Show help and exit.", showHelp)
+        option("--threads") & integer("Num of threads to use", settings.n_tile_threads)
     );
-    if(!parse(argc, argv, cli)) {
+    auto supportFlags = (
+        option("-h", "--help").doc("Show help and exit.").set(showHelp, true)
+    );
+    auto cli = (convertFlags | supportFlags);
+    if(parse(argc, argv, cli).any_error()) {
       std::cerr << make_man_page(cli, basename(std::string(argv[0])));
       return -1;
     }
