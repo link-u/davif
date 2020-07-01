@@ -4,9 +4,6 @@
 [submodule "external/libavif-container"]
 	path = external/libavif-container
 	url = https://github.com/link-u/libavif-container.git
-[submodule "external/libyuv"]
-	path = external/libyuv
-	url = https://chromium.googlesource.com/libyuv/libyuv
 [submodule "external/libpng"]
 	path = external/libpng
 	url = https://git.code.sf.net/p/libpng/code
@@ -17,9 +14,3 @@
 [submodule "external/clipp"]
 	path = external/clipp
 	url = https://github.com/muellan/clipp.git
-[submodule "external/fmt"]
-	path = external/fmt
-	url = https://github.com/fmtlib/fmt.git
-[submodule "external/Little-CMS"]
-	path = external/Little-CMS
-	url = https://github.com/mm2/Little-CMS.git
