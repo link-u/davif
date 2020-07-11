@@ -1,5 +1,6 @@
 version: 1.0.{build}
 image: Visual Studio 2019
+skip_branch_with_pr: true
 build_script:
   - cmd: >-
       set MSYSTEM=MINGW64
@@ -23,7 +24,7 @@ deploy:
     auth_token:
       secure: QbQ70S0qrbv9+8H3lkzRjFK5dNjb0bZdktusi/mgRlrw2O6iaglZDu6wbU203tLE
     draft: true
-    prerelease: true
+    prerelease: false
     on:
       branch: master                # release from master branch only
       APPVEYOR_REPO_TAG: true       # deploy on tag push only
