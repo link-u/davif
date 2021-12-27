@@ -22,7 +22,7 @@
 
 using MatrixType = avif::img::MatrixCoefficients;
 
-namespace {
+namespace internal {
 
 bool endsWidh(std::string const& target, std::string const& suffix) {
   if(target.size() < suffix.size()) {
@@ -122,7 +122,6 @@ avif::img::Image<BitsPerComponent> applyTransform(avif::img::Image<BitsPerCompon
   }
   return img;
 }
-}
 
 unsigned int decodeImageAt(avif::util::Logger& log, std::shared_ptr<avif::Parser::Result> const& res, uint32_t const itemID, Dav1dContext* ctx, Dav1dPicture& pic) {
   Dav1dData data{};
@@ -152,7 +151,7 @@ unsigned int decodeImageAt(avif::util::Logger& log, std::shared_ptr<avif::Parser
   }
 }
 
-static void saveImage(avif::util::Logger& log, std::string const& dstPath, avif::FileBox const& fileBox, Dav1dPicture& primary, avif::img::ColorProfile primaryProfile, std::optional<std::tuple<Dav1dPicture&, avif::img::ColorProfile const&>> alpha) {
+void saveImage(avif::util::Logger& log, std::string const& dstPath, avif::FileBox const& fileBox, Dav1dPicture& primary, avif::img::ColorProfile primaryProfile, std::optional<std::tuple<Dav1dPicture&, avif::img::ColorProfile const&>> alpha) {
   if(!endsWidh(dstPath, ".png")) {
     log.fatal("Please give png file for output: {}", dstPath);
   }
@@ -175,21 +174,7 @@ static void saveImage(avif::util::Logger& log, std::string const& dstPath, avif:
   }
 }
 
-static int _main(int argc, char** argv);
-
 int main(int argc, char** argv) {
-  try {
-    return _main(argc, argv);
-  } catch (std::exception& err) {
-    fprintf(stderr, "%s\n", err.what());
-    fflush(stderr);
-    return -1;
-  }
-}
-
-
-
-int _main(int argc, char** argv) {
   avif::util::FileLogger log(stdout, stderr, avif::util::Logger::DEBUG);
 
   log.info("davif");
@@ -211,10 +196,10 @@ int _main(int argc, char** argv) {
     using namespace clipp;
     auto convertFlags = (
         required("-i", "--input") & value("input.avif", inputFilename),
-        required("-o", "--output") & value("output.png", outputFilename),
-        option("--extract-alpha") & value("output-alpha.png").call([&](std::string const& path){ outputAlphaFilename = path; }),
-        option("--extract-depth") & value("output-depth.png").call([&](std::string const& path){ outputDepthFilename = path; }),
-        option("--threads") & integer("Num of threads to use", settings.n_tile_threads)
+            required("-o", "--output") & value("output.png", outputFilename),
+            option("--extract-alpha") & value("output-alpha.png").call([&](std::string const& path){ outputAlphaFilename = path; }),
+            option("--extract-depth") & value("output-depth.png").call([&](std::string const& path){ outputDepthFilename = path; }),
+            option("--threads") & integer("Num of threads to use", settings.n_tile_threads)
     );
     auto supportFlags = (
         option("-h", "--help").doc("Show help and exit.").set(showHelp, true)
@@ -328,4 +313,16 @@ int _main(int argc, char** argv) {
   }
   dav1d_close(&ctx);
   return 0;
+}
+
+}
+
+int main(int argc, char** argv) {
+  try {
+    return internal::main(argc, argv);
+  } catch (std::exception& err) {
+    fprintf(stderr, "%s\n", err.what());
+    fflush(stderr);
+    return -1;
+  }
 }
