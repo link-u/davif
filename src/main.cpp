@@ -196,10 +196,10 @@ int main(int argc, char** argv) {
     using namespace clipp;
     auto convertFlags = (
         required("-i", "--input") & value("input.avif", inputFilename),
-            required("-o", "--output") & value("output.png", outputFilename),
-            option("--extract-alpha") & value("output-alpha.png").call([&](std::string const& path){ outputAlphaFilename = path; }),
-            option("--extract-depth") & value("output-depth.png").call([&](std::string const& path){ outputDepthFilename = path; }),
-            option("--threads") & integer("Num of threads to use", settings.n_tile_threads)
+        required("-o", "--output") & value("output.png", outputFilename),
+        option("--extract-alpha") & value("output-alpha.png").call([&](std::string const& path){ outputAlphaFilename = path; }),
+        option("--extract-depth") & value("output-depth.png").call([&](std::string const& path){ outputDepthFilename = path; }),
+        option("--threads") & integer("Num of threads to use", settings.n_tile_threads)
     );
     auto supportFlags = (
         option("-h", "--help").doc("Show help and exit.").set(showHelp, true)
