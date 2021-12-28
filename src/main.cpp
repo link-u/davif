@@ -22,7 +22,7 @@
 
 using MatrixType = avif::img::MatrixCoefficients;
 
-namespace internal {
+namespace {
 
 bool endsWidh(std::string const& target, std::string const& suffix) {
   if(target.size() < suffix.size()) {
@@ -174,7 +174,23 @@ void saveImage(avif::util::Logger& log, std::string const& dstPath, avif::FileBo
   }
 }
 
+}
+
+namespace internal {
+int main(int argc, char** argv);
+}
+
 int main(int argc, char** argv) {
+  try {
+    return internal::main(argc, argv);
+  } catch (std::exception& err) {
+    fprintf(stderr, "%s\n", err.what());
+    fflush(stderr);
+    return -1;
+  }
+}
+
+int internal::main(int argc, char** argv) {
   avif::util::FileLogger log(stdout, stderr, avif::util::Logger::DEBUG);
 
   log.info("davif");
@@ -196,10 +212,10 @@ int main(int argc, char** argv) {
     using namespace clipp;
     auto convertFlags = (
         required("-i", "--input") & value("input.avif", inputFilename),
-        required("-o", "--output") & value("output.png", outputFilename),
-        option("--extract-alpha") & value("output-alpha.png").call([&](std::string const& path){ outputAlphaFilename = path; }),
-        option("--extract-depth") & value("output-depth.png").call([&](std::string const& path){ outputDepthFilename = path; }),
-        option("--threads") & integer("Num of threads to use", settings.n_threads)
+            required("-o", "--output") & value("output.png", outputFilename),
+            option("--extract-alpha") & value("output-alpha.png").call([&](std::string const& path){ outputAlphaFilename = path; }),
+            option("--extract-depth") & value("output-depth.png").call([&](std::string const& path){ outputDepthFilename = path; }),
+            option("--threads") & integer("Num of threads to use", settings.n_threads)
     );
     auto supportFlags = (
         option("-h", "--help").doc("Show help and exit.").set(showHelp, true)
@@ -313,16 +329,4 @@ int main(int argc, char** argv) {
   }
   dav1d_close(&ctx);
   return 0;
-}
-
-}
-
-int main(int argc, char** argv) {
-  try {
-    return internal::main(argc, argv);
-  } catch (std::exception& err) {
-    fprintf(stderr, "%s\n", err.what());
-    fflush(stderr);
-    return -1;
-  }
 }
