@@ -30,6 +30,8 @@ jobs:
       run: |
         export SDKROOT="$(xcrun --sdk macosx --show-sdk-path)"
         source venv/bin/activate
+        bash scripts/reset-submodules.sh
+        bash scripts/apply-patches.sh
         cmake -S . -B build
     - name: make
       shell: bash
