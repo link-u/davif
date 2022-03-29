@@ -30,6 +30,9 @@ davifは、ラッパーを介さず[dav1d](https://code.videolan.org/videolan/da
 git clone --recurse-submodules --recursive git@github.com:link-u/davif.git
 cd davif
 
+# Apply workarounds
+bash scripts/apply-patches.sh
+
 # System gcc is 8.0 or higher:
 cmake ..
 
