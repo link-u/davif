@@ -75,14 +75,13 @@ add_executable(davif
         src/img/Conversion.cpp
         src/img/Conversion.hpp
 
-        src/img/PNGWriter.cpp
-        src/img/PNGWriter.hpp
+    src/img/png/Writer.cpp
+    src/img/png/Writer.hpp
 
         src/main.cpp
 )
 
 add_dependencies(davif dav1d_repo)
-add_dependencies(davif lcms_repo)
 
 target_include_directories(davif PRIVATE external/libpng)
 target_include_directories(davif PRIVATE "${CMAKE_BINARY_DIR}/include")
@@ -90,7 +89,6 @@ target_include_directories(davif PRIVATE external/libavif-container/src)
 target_include_directories(davif PRIVATE external/libyuv/include)
 
 target_link_directories(davif PRIVATE "${CMAKE_BINARY_DIR}/lib")
-target_link_libraries(davif PRIVATE lcms2)
 target_link_libraries(davif PRIVATE libavif-container)
 target_link_libraries(davif PRIVATE fmt::fmt)
 target_link_libraries(davif PRIVATE zlibstatic)

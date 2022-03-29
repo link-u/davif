@@ -17,10 +17,8 @@
 #include <iostream>
 
 #include "../external/clipp/include/clipp.h"
-#include "img/PNGWriter.hpp"
+#include "img/png/Writer.hpp"
 #include "img/Conversion.hpp"
-
-using MatrixType = avif::img::MatrixCoefficients;
 
 namespace {
 
@@ -74,22 +72,30 @@ std::optional<T> findBox(avif::FileBox const& fileBox, uint32_t itemID) {
 
 avif::img::ColorProfile calcColorProfile(avif::FileBox const& fileBox, uint32_t const itemID, Dav1dPicture const& pic) {
   namespace query = avif::util::query;
-  std::optional<avif::ColourInformationBox> colr = query::findProperty<avif::ColourInformationBox>(fileBox, itemID);
+  std::optional<avif::ColourInformationBox> const  colr = query::findProperty<avif::ColourInformationBox>(fileBox, itemID);
   if(colr.has_value()) {
     auto profile = colr.value().profile;
     if(std::holds_alternative<avif::ColourInformationBox::RestrictedICC>(profile)) {
-      return avif::img::ICCProfile(std::get<avif::ColourInformationBox::RestrictedICC>(profile).payload);
+      return {
+        .iccProfile = avif::img::ICCProfile(std::get<avif::ColourInformationBox::RestrictedICC>(profile).payload),
+      };
     }else if(std::holds_alternative<avif::ColourInformationBox::UnrestrictedICC>(profile)) {
-      return avif::img::ICCProfile(std::get<avif::ColourInformationBox::UnrestrictedICC>(profile).payload);
-    }else if(std::holds_alternative<avif::ColourInformationBox::NCLX>(profile)) {
-      return std::get<avif::ColourInformationBox::NCLX>(profile);
+      return {
+        .iccProfile = avif::img::ICCProfile(std::get<avif::ColourInformationBox::UnrestrictedICC>(profile).payload),
+      };
+    }else if(std::holds_alternative<avif::ColourInformationBox::CICP>(profile)) {
+      return {
+        .cicp = std::get<avif::ColourInformationBox::CICP>(profile),
+      };
     }
   }
-  return avif::ColourInformationBox::NCLX {
-    .colourPrimaries = static_cast<uint16_t>(pic.seq_hdr->pri),
-    .transferCharacteristics = static_cast<uint16_t>(pic.seq_hdr->trc),
-    .matrixCoefficients = static_cast<uint16_t>(pic.seq_hdr->mtrx),
-    .fullRangeFlag = pic.seq_hdr->color_range == 1,
+  return {
+    .cicp = std::make_optional<avif::ColourInformationBox::CICP>({
+        .colourPrimaries = static_cast<uint16_t>(pic.seq_hdr->pri),
+        .transferCharacteristics = static_cast<uint16_t>(pic.seq_hdr->trc),
+        .matrixCoefficients = static_cast<uint16_t>(pic.seq_hdr->mtrx),
+        .fullRangeFlag = pic.seq_hdr->color_range == 1,
+      }),
   };
 }
 
@@ -157,17 +163,17 @@ void saveImage(avif::util::Logger& log, std::string const& dstPath, avif::FileBo
   }
 
   std::optional<std::string> writeResult;
-  std::variant<avif::img::Image<8>, avif::img::Image<16>> encoded = createImage(primary, primaryProfile, alpha);
+  std::variant<avif::img::Image<8>, avif::img::Image<16>> encoded = img::createImage(primary, primaryProfile, alpha);
   if(std::holds_alternative<avif::img::Image<8>>(encoded)) {
     auto& img = std::get<avif::img::Image<8>>(encoded);
     img = applyTransform(std::move(img), fileBox);
     img.colorProfile() = primaryProfile;
-    writeResult = PNGWriter(log, dstPath).write(img);
+    writeResult = img::png::Writer(log, dstPath).write(img);
   } else {
     auto& img = std::get<avif::img::Image<16>>(encoded);
     img = applyTransform(std::move(img), fileBox);
     img.colorProfile() = primaryProfile;
-    writeResult = PNGWriter(log, dstPath).write(img);
+    writeResult = img::png::Writer(log, dstPath).write(img);
   }
   if(writeResult.has_value()) {
     log.fatal("Failed to write PNG: {}", writeResult.value());
@@ -194,10 +200,11 @@ int internal::main(int argc, char** argv) {
   avif::util::FileLogger log(stdout, stderr, avif::util::Logger::DEBUG);
 
   log.info("davif");
-  log.debug(" - dav1d ver: {}", dav1d_version());
+  log.info(" - dav1d ver: {}", dav1d_version());
+  log.info(" - libpng ver: {}", img::png::Writer::version());
 
   // Init dav1d
-  Dav1dSettings settings{};
+  Dav1dSettings settings = {};
   dav1d_default_settings(&settings);
   settings.logger.cookie = &log;
   settings.logger.callback = log_callback;
@@ -212,10 +219,10 @@ int internal::main(int argc, char** argv) {
     using namespace clipp;
     auto convertFlags = (
         required("-i", "--input") & value("input.avif", inputFilename),
-            required("-o", "--output") & value("output.png", outputFilename),
-            option("--extract-alpha") & value("output-alpha.png").call([&](std::string const& path){ outputAlphaFilename = path; }),
-            option("--extract-depth") & value("output-depth.png").call([&](std::string const& path){ outputDepthFilename = path; }),
-            option("--threads") & integer("Num of threads to use", settings.n_threads)
+        required("-o", "--output") & value("output.png", outputFilename),
+        option("--extract-alpha") & value("output-alpha.png").call([&](std::string const& path){ outputAlphaFilename = path; }),
+        option("--extract-depth") & value("output-depth.png").call([&](std::string const& path){ outputDepthFilename = path; }),
+        option("--threads") & integer("Num of threads to use", settings.n_threads)
     );
     auto supportFlags = (
         option("-h", "--help").doc("Show help and exit.").set(showHelp, true)
@@ -231,13 +238,13 @@ int internal::main(int argc, char** argv) {
     }
     if(inputFilename == outputFilename) {
       std::cerr << "Input and output can't be the same file!" << std::endl;
-      return -1;
+      return -2;
     }
   }
 
-  Dav1dContext* ctx{};
-  int err = dav1d_open(&ctx, &settings);
-  if(err != 0) {
+  Dav1dContext* ctx = nullptr;
+
+  if(int err = dav1d_open(&ctx, &settings); err != 0) {
     log.fatal("Failed to open dav1d: {}\n", err);
   }
 
