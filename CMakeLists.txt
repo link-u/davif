@@ -2,7 +2,8 @@ cmake_minimum_required(VERSION 3.13)
 project(davif)
 
 set(CMAKE_CXX_STANDARD 17)
-set(CMAKE_CXX_FLAGS_DEBUG "-g3 -O0 -fno-omit-frame-pointer")
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(ENABLE_DOCS OFF)
 
 ###############################################################################
 add_subdirectory(external/libavif-container EXCLUDE_FROM_ALL)
@@ -81,6 +82,17 @@ add_executable(davif
         src/main.cpp
 )
 
+# https://cmake.org/cmake/help/latest/manual/cmake-compile-features.7.html#requiring-language-standards
+# https://stackoverflow.com/questions/45688522/how-to-enable-c17-in-cmake
+target_compile_features(davif PRIVATE cxx_std_17)
+# https://cmake.org/cmake/help/latest/prop_tgt/CXX_STANDARD.html
+set_property(TARGET davif PROPERTY CXX_STANDARD 17)
+set_property(TARGET davif PROPERTY CXX_STANDARD_REQUIRED ON)
+
+if (CMAKE_CXX_COMPILER_ID STREQUAL "GNU" OR CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
+    set_property(TARGET davif PROPERTY CXX_FLAGS_DEBUG "-g3 -O0 -fno-omit-frame-pointer")
+endif()
+
 add_dependencies(davif dav1d_repo)
 
 target_include_directories(davif PRIVATE external/libpng)
@@ -102,4 +114,3 @@ target_link_libraries(davif PRIVATE dl)
 install(TARGETS davif
     RUNTIME DESTINATION bin
 )
-

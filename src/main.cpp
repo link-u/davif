@@ -85,12 +85,12 @@ avif::img::ColorProfile calcColorProfile(avif::FileBox const& fileBox, uint32_t 
       };
     }else if(std::holds_alternative<avif::ColourInformationBox::CICP>(profile)) {
       return {
-        .cicp = std::make_optional(std::get<avif::ColourInformationBox::CICP>(profile)),
+        .cicp = std::get<avif::ColourInformationBox::CICP>(profile),
       };
     }
   }
   return {
-    .cicp = std::make_optional<avif::ColourInformationBox::CICP>(avif::ColourInformationBox::CICP {
+    .cicp = std::make_optional<avif::ColourInformationBox::CICP>({
         .colourPrimaries = static_cast<uint16_t>(pic.seq_hdr->pri),
         .transferCharacteristics = static_cast<uint16_t>(pic.seq_hdr->trc),
         .matrixCoefficients = static_cast<uint16_t>(pic.seq_hdr->mtrx),
