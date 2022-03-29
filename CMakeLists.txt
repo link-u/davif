@@ -73,13 +73,13 @@ ENDIF()
 ###############################################################################
 
 add_executable(davif
-        src/img/Conversion.cpp
-        src/img/Conversion.hpp
+    src/img/Conversion.cpp
+    src/img/Conversion.hpp
 
     src/img/png/Writer.cpp
     src/img/png/Writer.hpp
 
-        src/main.cpp
+    src/main.cpp
 )
 
 # https://cmake.org/cmake/help/latest/manual/cmake-compile-features.7.html#requiring-language-standards
