@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.13)
 project(davif)
 
-set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(ENABLE_DOCS OFF)
 
@@ -84,9 +84,9 @@ add_executable(davif
 
 # https://cmake.org/cmake/help/latest/manual/cmake-compile-features.7.html#requiring-language-standards
 # https://stackoverflow.com/questions/45688522/how-to-enable-c17-in-cmake
-target_compile_features(davif PRIVATE cxx_std_17)
+target_compile_features(davif PRIVATE cxx_std_20)
 # https://cmake.org/cmake/help/latest/prop_tgt/CXX_STANDARD.html
-set_property(TARGET davif PROPERTY CXX_STANDARD 17)
+set_property(TARGET davif PROPERTY CXX_STANDARD 20)
 set_property(TARGET davif PROPERTY CXX_STANDARD_REQUIRED ON)
 
 if (CMAKE_CXX_COMPILER_ID STREQUAL "GNU" OR CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
