@@ -9,7 +9,6 @@
 #include <avif/Constants.hpp>
 #include <avif/Parser.hpp>
 #include <avif/img/Image.hpp>
-#include <avif/img/Conversion.hpp>
 #include <avif/img/Crop.hpp>
 #include <avif/img/Transform.hpp>
 #include <thread>
