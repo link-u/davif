@@ -227,7 +227,7 @@ int internal::main(int argc, char** argv) {
   dav1d_default_settings(&settings);
   settings.logger.cookie = &log;
   settings.logger.callback = log_callback;
-  settings.n_tile_threads = static_cast<int>(std::thread::hardware_concurrency());
+  settings.n_threads = static_cast<int>(std::thread::hardware_concurrency());
 
   std::string inputFilename = {};
   std::string outputFilename = {};
@@ -241,7 +241,7 @@ int internal::main(int argc, char** argv) {
         required("-o", "--output") & value("output.png", outputFilename),
         option("--extract-alpha") & value("output-alpha.png").call([&](std::string const& path){ outputAlphaFilename = path; }),
         option("--extract-depth") & value("output-depth.png").call([&](std::string const& path){ outputDepthFilename = path; }),
-        option("--threads") & integer("Num of threads to use", settings.n_tile_threads)
+        option("--threads") & integer("Num of threads to use", settings.n_threads)
     );
     auto supportFlags = (
         option("-h", "--help").doc("Show help and exit.").set(showHelp, true)
