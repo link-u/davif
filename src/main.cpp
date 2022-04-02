@@ -75,27 +75,49 @@ avif::img::ColorProfile calcColorProfile(avif::FileBox const& fileBox, uint32_t 
   if(colr.has_value()) {
     auto profile = colr.value().profile;
     if(std::holds_alternative<avif::ColourInformationBox::RestrictedICC>(profile)) {
-      return {
-        .iccProfile = avif::img::ICCProfile(std::get<avif::ColourInformationBox::RestrictedICC>(profile).payload),
-      };
+      avif::img::ColorProfile r;
+      r.iccProfile = avif::img::ICCProfile(std::get<avif::ColourInformationBox::RestrictedICC>(profile).payload);
+      return r;
+// FIXME(ledyba-z): gcc8 does not support this syntax.
+//      return {
+//        .iccProfile = avif::img::ICCProfile(std::get<avif::ColourInformationBox::RestrictedICC>(profile).payload),
+//      };
     }else if(std::holds_alternative<avif::ColourInformationBox::UnrestrictedICC>(profile)) {
-      return {
-        .iccProfile = avif::img::ICCProfile(std::get<avif::ColourInformationBox::UnrestrictedICC>(profile).payload),
-      };
+      avif::img::ColorProfile r;
+      r.iccProfile = avif::img::ICCProfile(std::get<avif::ColourInformationBox::UnrestrictedICC>(profile).payload);
+      return r;
+// FIXME(ledyba-z): gcc8 does not support this syntax.
+//      return {
+//        .iccProfile = avif::img::ICCProfile(std::get<avif::ColourInformationBox::UnrestrictedICC>(profile).payload),
+//      };
     }else if(std::holds_alternative<avif::ColourInformationBox::CICP>(profile)) {
-      return {
-        .cicp = std::get<avif::ColourInformationBox::CICP>(profile),
-      };
+      avif::img::ColorProfile r;
+      r.cicp = std::get<avif::ColourInformationBox::CICP>(profile);
+      return r;
+// FIXME(ledyba-z): gcc8 does not support this syntax.
+//      return {
+//        .cicp = std::get<avif::ColourInformationBox::CICP>(profile),
+//      };
     }
+  } else {
+    avif::img::ColorProfile r;
+    r.cicp = {};
+    r.cicp->colourPrimaries = static_cast<uint16_t>(pic.seq_hdr->pri);
+    r.cicp->transferCharacteristics = static_cast<uint16_t>(pic.seq_hdr->trc);
+    r.cicp->matrixCoefficients = static_cast<uint16_t>(pic.seq_hdr->mtrx);
+    r.cicp->fullRangeFlag = pic.seq_hdr->color_range == 1;
+    return r;
+// FIXME(ledyba-z): gcc8 does not support this syntax.
+//    return {
+//      .cicp = std::make_optional<avif::ColourInformationBox::CICP>({
+//          .colourPrimaries = static_cast<uint16_t>(pic.seq_hdr->pri),
+//          .transferCharacteristics = static_cast<uint16_t>(pic.seq_hdr->trc),
+//          .matrixCoefficients = static_cast<uint16_t>(pic.seq_hdr->mtrx),
+//          .fullRangeFlag = pic.seq_hdr->color_range == 1,
+//        }),
+//    };
   }
-  return {
-    .cicp = std::make_optional<avif::ColourInformationBox::CICP>({
-        .colourPrimaries = static_cast<uint16_t>(pic.seq_hdr->pri),
-        .transferCharacteristics = static_cast<uint16_t>(pic.seq_hdr->trc),
-        .matrixCoefficients = static_cast<uint16_t>(pic.seq_hdr->mtrx),
-        .fullRangeFlag = pic.seq_hdr->color_range == 1,
-      }),
-  };
+
 }
 
 template <size_t BitsPerComponent>
