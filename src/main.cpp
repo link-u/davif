@@ -99,25 +99,23 @@ avif::img::ColorProfile calcColorProfile(avif::FileBox const& fileBox, uint32_t 
 //        .cicp = std::get<avif::ColourInformationBox::CICP>(profile),
 //      };
     }
-  } else {
-    avif::img::ColorProfile r;
-    r.cicp = std::make_optional<avif::ColourInformationBox::CICP>();
-    r.cicp->colourPrimaries = static_cast<uint16_t>(pic.seq_hdr->pri);
-    r.cicp->transferCharacteristics = static_cast<uint16_t>(pic.seq_hdr->trc);
-    r.cicp->matrixCoefficients = static_cast<uint16_t>(pic.seq_hdr->mtrx);
-    r.cicp->fullRangeFlag = pic.seq_hdr->color_range == 1;
-    return r;
-// FIXME(ledyba-z): gcc8 does not support this syntax.
-//    return {
-//      .cicp = std::make_optional<avif::ColourInformationBox::CICP>({
-//          .colourPrimaries = static_cast<uint16_t>(pic.seq_hdr->pri),
-//          .transferCharacteristics = static_cast<uint16_t>(pic.seq_hdr->trc),
-//          .matrixCoefficients = static_cast<uint16_t>(pic.seq_hdr->mtrx),
-//          .fullRangeFlag = pic.seq_hdr->color_range == 1,
-//        }),
-//    };
   }
-
+  avif::img::ColorProfile r;
+  r.cicp = std::make_optional<avif::ColourInformationBox::CICP>();
+  r.cicp->colourPrimaries = static_cast<uint16_t>(pic.seq_hdr->pri);
+  r.cicp->transferCharacteristics = static_cast<uint16_t>(pic.seq_hdr->trc);
+  r.cicp->matrixCoefficients = static_cast<uint16_t>(pic.seq_hdr->mtrx);
+  r.cicp->fullRangeFlag = pic.seq_hdr->color_range == 1;
+  return r;
+// FIXME(ledyba-z): gcc8 does not support this syntax.
+//  return {
+//    .cicp = std::make_optional<avif::ColourInformationBox::CICP>({
+//        .colourPrimaries = static_cast<uint16_t>(pic.seq_hdr->pri),
+//        .transferCharacteristics = static_cast<uint16_t>(pic.seq_hdr->trc),
+//        .matrixCoefficients = static_cast<uint16_t>(pic.seq_hdr->mtrx),
+//        .fullRangeFlag = pic.seq_hdr->color_range == 1,
+//      }),
+//  };
 }
 
 template <size_t BitsPerComponent>
@@ -229,7 +227,7 @@ int internal::main(int argc, char** argv) {
   dav1d_default_settings(&settings);
   settings.logger.cookie = &log;
   settings.logger.callback = log_callback;
-  settings.n_threads = static_cast<int>(std::thread::hardware_concurrency());
+  settings.n_tile_threads = static_cast<int>(std::thread::hardware_concurrency());
 
   std::string inputFilename = {};
   std::string outputFilename = {};
@@ -243,7 +241,7 @@ int internal::main(int argc, char** argv) {
         required("-o", "--output") & value("output.png", outputFilename),
         option("--extract-alpha") & value("output-alpha.png").call([&](std::string const& path){ outputAlphaFilename = path; }),
         option("--extract-depth") & value("output-depth.png").call([&](std::string const& path){ outputDepthFilename = path; }),
-        option("--threads") & integer("Num of threads to use", settings.n_threads)
+        option("--threads") & integer("Num of threads to use", settings.n_tile_threads)
     );
     auto supportFlags = (
         option("-h", "--help").doc("Show help and exit.").set(showHelp, true)
