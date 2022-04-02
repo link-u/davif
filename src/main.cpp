@@ -101,7 +101,7 @@ avif::img::ColorProfile calcColorProfile(avif::FileBox const& fileBox, uint32_t 
     }
   } else {
     avif::img::ColorProfile r;
-    r.cicp = {};
+    r.cicp = std::make_optional<avif::ColourInformationBox::CICP>();
     r.cicp->colourPrimaries = static_cast<uint16_t>(pic.seq_hdr->pri);
     r.cicp->transferCharacteristics = static_cast<uint16_t>(pic.seq_hdr->trc);
     r.cicp->matrixCoefficients = static_cast<uint16_t>(pic.seq_hdr->mtrx);
