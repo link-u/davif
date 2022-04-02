@@ -149,7 +149,7 @@ avif::img::Image<BitsPerComponent> applyTransform(avif::img::Image<BitsPerCompon
 }
 
 unsigned int decodeImageAt(avif::util::Logger& log, std::shared_ptr<avif::Parser::Result> const& res, uint32_t const itemID, Dav1dContext* ctx, Dav1dPicture& pic) {
-  Dav1dData data{};
+  Dav1dData data = { nullptr };
   auto const buffBegin = res->buffer().data();
   avif::FileBox const& fileBox = res->fileBox();
   size_t const baseOffset = fileBox.metaBox.itemLocationBox.items.at(itemID - 1).baseOffset;
@@ -169,7 +169,7 @@ unsigned int decodeImageAt(avif::util::Logger& log, std::shared_ptr<avif::Parser
 
     err = dav1d_get_picture(ctx, &pic);
     if (err < 0) {
-      log.error("Failed to decode dav1d: {}\n", err);
+      log.fatal("Failed to decode dav1d: {}\n", err);
     }
     auto finish = std::chrono::steady_clock::now();
     return std::chrono::duration_cast<std::chrono::milliseconds>(finish-start).count();
@@ -225,6 +225,9 @@ int internal::main(int argc, char** argv) {
   // Init dav1d
   Dav1dSettings settings = {};
   dav1d_default_settings(&settings);
+  // NOTE(ledyba-z):
+  // If > 1, dav1d tends to buffer frames(?). See libavif
+  settings.max_frame_delay = 1;
   settings.logger.cookie = &log;
   settings.logger.callback = log_callback;
   settings.n_threads = static_cast<int>(std::thread::hardware_concurrency());
@@ -283,8 +286,8 @@ int internal::main(int argc, char** argv) {
   log.info("Decoding: {} -> {}", inputFilename, outputFilename);
   // start decoding
   avif::FileBox const& fileBox = res->fileBox();
-  Dav1dPicture primaryImg{};
-  std::optional<Dav1dPicture> alphaImg{};
+  Dav1dPicture primaryImg = {};
+  std::optional<Dav1dPicture> alphaImg = {};
   namespace query = avif::util::query;
   uint32_t const primaryImageID = query::findPrimaryItemID(fileBox).value_or(1);
   { // primary image
