@@ -45,6 +45,8 @@ jobs:
             bionic)
               export CC=gcc-8
               export CXX=g++-8
+              # bionic's nasm is too old.
+              sed -i -e 's/-Denable_asm=true/-Denable_asm=false/g' scripts/build-deps.sh
               ;;
             *) ;;
           esac

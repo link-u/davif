@@ -39,6 +39,8 @@ case $(lsb_release -cs) in
       sed -i -r "s/gcc-9/gcc-8/g"                       "${ROOT_DIR}/debian/control"
       sed -i -r "s/g\+\+-9/g++-8/g"                     "${ROOT_DIR}/debian/control"
       sed -i -r "s/libstdc\+\+-9-dev/libstdc++-8-dev/g" "${ROOT_DIR}/debian/control"
+      # bionic's nasm is too old.
+      sed -i -e 's/-Denable_asm=true/-Denable_asm=false/g' scripts/build-deps.sh
     ;;
   *) ;;
 esac
