@@ -33,6 +33,9 @@ cd davif
 # Apply workarounds
 bash scripts/apply-patches.sh
 
+# Build dependencies not managed by CMake.
+bash scripts/build-deps.sh
+
 # System gcc is 8.0 or higher:
 cmake ..
 

@@ -4,9 +4,9 @@
 *.avif
 /perf.data
 /perf.data.old
+/build/
 /*.deb
 /*.ddeb
-/decoded/
 
 ### C++ template
 # Compiled Object files
@@ -87,3 +87,6 @@ com_crashlytics_export_strings.xml
 crashlytics.properties
 crashlytics-build.properties
 fabric.properties
+
+#
+/_deps/
