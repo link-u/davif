@@ -27,7 +27,6 @@ meson setup \
   "--backend" "ninja" \
   "--buildtype" "release" \
   "--default-library" "static" \
-  "--optimization" "3" \
   "-Denable_asm=true" \
   "-Denable_tests=false" \
   "build" \
