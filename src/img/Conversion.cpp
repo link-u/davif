@@ -245,8 +245,8 @@ std::variant<
   avif::img::Image<8>,
   avif::img::Image<16>
 > createImage(
-  Dav1dPicture &primary, avif::img::ColorProfile const &primaryProfile,
-  std::optional<std::tuple<Dav1dPicture &, avif::img::ColorProfile const &>> alpha
+  Dav1dPicture& primary, avif::img::ColorProfile const& primaryProfile,
+  std::optional<std::tuple<Dav1dPicture&, avif::img::ColorProfile const&>> alpha
 ) {
 
   avif::ColourInformationBox::CICP cicp = {};
