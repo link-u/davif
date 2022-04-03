@@ -70,43 +70,37 @@ std::optional<T> findBox(avif::FileBox const& fileBox, uint32_t itemID) {
 }
 
 avif::img::ColorProfile calcColorProfile(avif::FileBox const& fileBox, uint32_t const itemID, Dav1dPicture const& pic) {
+  avif::img::ColorProfile prof = {};
   namespace query = avif::util::query;
   std::optional<avif::ColourInformationBox> const  colr = query::findProperty<avif::ColourInformationBox>(fileBox, itemID);
   if(colr.has_value()) {
     auto profile = colr.value().profile;
     if(std::holds_alternative<avif::ColourInformationBox::RestrictedICC>(profile)) {
-      avif::img::ColorProfile r;
-      r.iccProfile = avif::img::ICCProfile(std::get<avif::ColourInformationBox::RestrictedICC>(profile).payload);
-      return r;
+      prof.iccProfile = avif::img::ICCProfile(std::get<avif::ColourInformationBox::RestrictedICC>(profile).payload);
 // FIXME(ledyba-z): gcc8 does not support this syntax.
 //      return {
 //        .iccProfile = avif::img::ICCProfile(std::get<avif::ColourInformationBox::RestrictedICC>(profile).payload),
 //      };
     }else if(std::holds_alternative<avif::ColourInformationBox::UnrestrictedICC>(profile)) {
-      avif::img::ColorProfile r;
-      r.iccProfile = avif::img::ICCProfile(std::get<avif::ColourInformationBox::UnrestrictedICC>(profile).payload);
-      return r;
+      prof.iccProfile = avif::img::ICCProfile(std::get<avif::ColourInformationBox::UnrestrictedICC>(profile).payload);
 // FIXME(ledyba-z): gcc8 does not support this syntax.
 //      return {
 //        .iccProfile = avif::img::ICCProfile(std::get<avif::ColourInformationBox::UnrestrictedICC>(profile).payload),
 //      };
     }else if(std::holds_alternative<avif::ColourInformationBox::CICP>(profile)) {
-      avif::img::ColorProfile r;
-      r.cicp = std::get<avif::ColourInformationBox::CICP>(profile);
-      return r;
+      prof.cicp = std::get<avif::ColourInformationBox::CICP>(profile);
 // FIXME(ledyba-z): gcc8 does not support this syntax.
 //      return {
 //        .cicp = std::get<avif::ColourInformationBox::CICP>(profile),
 //      };
     }
   }
-  avif::img::ColorProfile r;
-  r.cicp = std::make_optional<avif::ColourInformationBox::CICP>();
-  r.cicp->colourPrimaries = static_cast<uint16_t>(pic.seq_hdr->pri);
-  r.cicp->transferCharacteristics = static_cast<uint16_t>(pic.seq_hdr->trc);
-  r.cicp->matrixCoefficients = static_cast<uint16_t>(pic.seq_hdr->mtrx);
-  r.cicp->fullRangeFlag = pic.seq_hdr->color_range == 1;
-  return r;
+  if(!prof.cicp.has_value()) {
+    prof.cicp = std::make_optional<avif::ColourInformationBox::CICP>();
+    prof.cicp->colourPrimaries = static_cast<uint16_t>(pic.seq_hdr->pri);
+    prof.cicp->transferCharacteristics = static_cast<uint16_t>(pic.seq_hdr->trc);
+    prof.cicp->matrixCoefficients = static_cast<uint16_t>(pic.seq_hdr->mtrx);
+    prof.cicp->fullRangeFlag = pic.seq_hdr->color_range == 1;
 // FIXME(ledyba-z): gcc8 does not support this syntax.
 //  return {
 //    .cicp = std::make_optional<avif::ColourInformationBox::CICP>({
@@ -116,6 +110,8 @@ avif::img::ColorProfile calcColorProfile(avif::FileBox const& fileBox, uint32_t 
 //        .fullRangeFlag = pic.seq_hdr->color_range == 1,
 //      }),
 //  };
+  }
+  return prof;
 }
 
 template <size_t BitsPerComponent>
@@ -148,7 +144,12 @@ avif::img::Image<BitsPerComponent> applyTransform(avif::img::Image<BitsPerCompon
   return img;
 }
 
-unsigned int decodeImageAt(avif::util::Logger& log, std::shared_ptr<avif::Parser::Result> const& res, uint32_t const itemID, Dav1dContext* ctx, Dav1dPicture& pic) {
+std::chrono::milliseconds::rep decodeImageAt(
+    avif::util::Logger& log,
+    std::shared_ptr<avif::Parser::Result> const& res,
+    uint32_t const itemID, Dav1dContext* ctx,
+    Dav1dPicture& pic
+) {
   Dav1dData data = { nullptr };
   auto const buffBegin = res->buffer().data();
   avif::FileBox const& fileBox = res->fileBox();
@@ -176,7 +177,14 @@ unsigned int decodeImageAt(avif::util::Logger& log, std::shared_ptr<avif::Parser
   }
 }
 
-void saveImage(avif::util::Logger& log, std::string const& dstPath, avif::FileBox const& fileBox, Dav1dPicture& primary, avif::img::ColorProfile primaryProfile, std::optional<std::tuple<Dav1dPicture&, avif::img::ColorProfile const&>> alpha) {
+void saveImage(
+    avif::util::Logger& log,
+    std::string const& dstPath,
+    avif::FileBox const& fileBox,
+    Dav1dPicture& primary,
+    avif::img::ColorProfile const& primaryProfile,
+    std::optional<std::tuple<Dav1dPicture&, avif::img::ColorProfile const&>> alpha
+) {
   if(!endsWidh(dstPath, ".png")) {
     log.fatal("Please give png file for output: {}", dstPath);
   }
@@ -209,7 +217,7 @@ int main(int argc, char** argv) {
   try {
     return internal::main(argc, argv);
   } catch (std::exception& err) {
-    fprintf(stderr, "%s\n", err.what());
+    fprintf(stderr, "Fatal Error: %s\n", err.what());
     fflush(stderr);
     return -1;
   }
