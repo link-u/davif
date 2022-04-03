@@ -57,6 +57,7 @@ mk-build-deps --install --remove \
 
 bash scripts/reset-submodules.sh
 bash scripts/apply-patches.sh
+bash scripts/build-deps.sh
 
 fakeroot debian/rules clean
 fakeroot debian/rules build
