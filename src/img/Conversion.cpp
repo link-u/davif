@@ -9,7 +9,7 @@
 namespace img {
 
 template<typename Converter, size_t rgbBits, size_t yuvBits, bool toMonoRGB, bool isFullRange>
-void writeImage(avif::img::Image<rgbBits> &dst, Dav1dPicture &src) {
+void writeImage(avif::img::Image<rgbBits>& dst, Dav1dPicture& src) {
   switch (src.p.layout) {
     case DAV1D_PIXEL_LAYOUT_I400:
       avif::img::ToRGB<Converter, rgbBits, yuvBits, toMonoRGB, isFullRange>::fromI400(dst,
@@ -57,7 +57,7 @@ void writeImage(avif::img::Image<rgbBits> &dst, Dav1dPicture &src) {
 }
 
 template<typename Converter, size_t rgbBits, size_t yuvBits, bool isFullRange>
-void writeAlpha(avif::img::Image<rgbBits> &dst, Dav1dPicture &src) {
+void writeAlpha(avif::img::Image<rgbBits>& dst, Dav1dPicture& src) {
   switch (src.p.layout) {
     case DAV1D_PIXEL_LAYOUT_I400:
       avif::img::ToAlpha<Converter, rgbBits, yuvBits, isFullRange>::fromI400(dst,
@@ -70,9 +70,12 @@ void writeAlpha(avif::img::Image<rgbBits> &dst, Dav1dPicture &src) {
 }
 
 template<typename Converter, size_t rgbBits, size_t yuvBits>
-avif::img::Image<rgbBits> convertToRGB(Dav1dPicture &primary) {
+avif::img::Image<rgbBits> convertToRGB(Dav1dPicture& primary) {
   avif::img::PixelOrder const pixelOrder =
-      primary.p.layout == DAV1D_PIXEL_LAYOUT_I400 ? avif::img::PixelOrder::Mono : avif::img::PixelOrder::RGB;
+      primary.p.layout == DAV1D_PIXEL_LAYOUT_I400 ?
+        avif::img::PixelOrder::Mono :
+        avif::img::PixelOrder::RGB;
+
   avif::img::Image<rgbBits> img = avif::img::Image<rgbBits>::createEmptyImage(pixelOrder, primary.p.w, primary.p.h);
 
   if (img.isMonochrome()) {
@@ -85,7 +88,7 @@ avif::img::Image<rgbBits> convertToRGB(Dav1dPicture &primary) {
 
 template<typename ConverterRGB, typename ConverterA, size_t rgbBits, size_t yuvBits, size_t monoBits>
 avif::img::Image<rgbBits>
-convertToRGBA(Dav1dPicture &primary, Dav1dPicture &alpha) {
+convertToRGBA(Dav1dPicture& primary, Dav1dPicture& alpha) {
   avif::img::PixelOrder const pixelOrder =
       primary.p.layout == DAV1D_PIXEL_LAYOUT_I400 ? avif::img::PixelOrder::MonoA : avif::img::PixelOrder::RGBA;
   avif::img::Image<rgbBits> img = avif::img::Image<rgbBits>::createEmptyImage(pixelOrder, primary.p.w, primary.p.h);
@@ -106,7 +109,7 @@ convertToRGBA(Dav1dPicture &primary, Dav1dPicture &alpha) {
 
 template<typename ConverterRGB, typename ConverterA, size_t rgbBits, size_t yuvBits>
 avif::img::Image<rgbBits>
-convertToRGBA(Dav1dPicture &primary, Dav1dPicture &alpha) {
+convertToRGBA(Dav1dPicture& primary, Dav1dPicture& alpha) {
   switch (alpha.p.bpc) {
     case 8:
       return convertToRGBA<ConverterRGB, ConverterA, rgbBits, yuvBits, 8>(primary, alpha);
@@ -121,7 +124,7 @@ convertToRGBA(Dav1dPicture &primary, Dav1dPicture &alpha) {
 
 template<typename ConverterRGB>
 std::variant<avif::img::Image<8>, avif::img::Image<16>>
-createImageRGB(Dav1dPicture &primary) {
+createImageRGB(Dav1dPicture& primary) {
   switch (primary.p.bpc) {
     case 8:
       return convertToRGB<ConverterRGB, 8, 8>(primary);
@@ -136,7 +139,7 @@ createImageRGB(Dav1dPicture &primary) {
 
 template<typename ConverterRGB, typename ConverterA>
 std::variant<avif::img::Image<8>, avif::img::Image<16>>
-createImageRGBA(Dav1dPicture &primary, Dav1dPicture &alpha) {
+createImageRGBA(Dav1dPicture& primary, Dav1dPicture& alpha) {
   if (primary.p.bpc == 8 && alpha.p.bpc == 8) {
     switch (primary.p.bpc) {
       case 8:
