@@ -32,6 +32,7 @@ jobs:
         source venv/bin/activate
         bash scripts/reset-submodules.sh
         bash scripts/apply-patches.sh
+        bash scripts/build-deps.sh
         cmake -S . -B build
     - name: make
       shell: bash

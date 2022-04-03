@@ -46,6 +46,7 @@ jobs:
         export HOME=${{ github.workspace }}
         bash scripts/reset-submodules.sh
         bash scripts/apply-patches.sh
+        bash scripts/build-deps.sh
     - name: configure
       shell: msys2 {0}
       run: |
