@@ -10,6 +10,10 @@ function readlink_f() {
 ROOT_DIR="$(cd "$(readlink_f "$(dirname "$0")")" && cd .. && pwd)"
 cd "${ROOT_DIR}" || exit 1
 
+# To avoid limitation:
+#   https://git-scm.com/docs/git-config/2.35.2#Documentation/git-config.txt-safedirectory
+chown "$(id -g):$(id -u)" . -R
+
 # Generate changelog
 git_describe="$(git describe --tags)"
 VERSION=${git_describe:1}.$(TZ=JST-9 date +%Y%m%d)+$(lsb_release -cs)
