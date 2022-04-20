@@ -173,7 +173,7 @@ std::variant<
   Dav1dPicture& primary,
   std::optional<std::tuple<Dav1dPicture&, avif::img::ColorProfile const&>> alpha
 ) {
-  using avif::img::color::ConverterFactory;
+  using avif::img::color::ColorConverter;
   if (!alpha.has_value()) {
     return createImageRGB<ConverterRGB>(primary);
   }
@@ -187,57 +187,57 @@ std::variant<
   using avif::img::color::MatrixCoefficients;
   switch (static_cast<MatrixCoefficients>(cicp.matrixCoefficients)) {
     case MatrixCoefficients::MC_IDENTITY: {
-      using converter = avif::img::color::ConverterFactory<MatrixCoefficients::MC_IDENTITY>;
-      return createImageRGBA<ConverterRGB, converter>(primary, alphaPic);
+      using Converter = avif::img::color::ColorConverter<MatrixCoefficients::MC_IDENTITY>;
+      return createImageRGBA<ConverterRGB, Converter>(primary, alphaPic);
     }
     case MatrixCoefficients::MC_BT_709: {
-      using converter = avif::img::color::ConverterFactory<MatrixCoefficients::MC_BT_709>;
-      return createImageRGBA<ConverterRGB, converter>(primary, alphaPic);
+      using Converter = avif::img::color::ColorConverter<MatrixCoefficients::MC_BT_709>;
+      return createImageRGBA<ConverterRGB, Converter>(primary, alphaPic);
     }
     case MatrixCoefficients::MC_FCC: {
-      using converter = avif::img::color::ConverterFactory<MatrixCoefficients::MC_FCC>;
-      return createImageRGBA<ConverterRGB, converter>(primary, alphaPic);
+      using Converter = avif::img::color::ColorConverter<MatrixCoefficients::MC_FCC>;
+      return createImageRGBA<ConverterRGB, Converter>(primary, alphaPic);
     }
     case MatrixCoefficients::MC_UNSPECIFIED:
     case MatrixCoefficients::MC_BT_470_B_G: {
-      using converter = avif::img::color::ConverterFactory<MatrixCoefficients::MC_BT_470_B_G>;
-      return createImageRGBA<ConverterRGB, converter>(primary, alphaPic);
+      using Converter = avif::img::color::ColorConverter<MatrixCoefficients::MC_BT_470_B_G>;
+      return createImageRGBA<ConverterRGB, Converter>(primary, alphaPic);
     }
     case MatrixCoefficients::MC_NSTC: {
-      using converter = avif::img::color::ConverterFactory<MatrixCoefficients::MC_NSTC>;
-      return createImageRGBA<ConverterRGB, converter>(primary, alphaPic);
+      using Converter = avif::img::color::ColorConverter<MatrixCoefficients::MC_NSTC>;
+      return createImageRGBA<ConverterRGB, Converter>(primary, alphaPic);
     }
     case MatrixCoefficients::MC_SMPTE_240: {
-      using converter = avif::img::color::ConverterFactory<MatrixCoefficients::MC_SMPTE_240>;
-      return createImageRGBA<ConverterRGB, converter>(primary, alphaPic);
+      using Converter = avif::img::color::ColorConverter<MatrixCoefficients::MC_SMPTE_240>;
+      return createImageRGBA<ConverterRGB, Converter>(primary, alphaPic);
     }
     case MatrixCoefficients::MC_SMPTE_YCGCO: {
-      using converter = avif::img::color::ConverterFactory<MatrixCoefficients::MC_SMPTE_YCGCO>;
-      return createImageRGBA<ConverterRGB, converter>(primary, alphaPic);
+      using Converter = avif::img::color::ColorConverter<MatrixCoefficients::MC_SMPTE_YCGCO>;
+      return createImageRGBA<ConverterRGB, Converter>(primary, alphaPic);
     }
     case MatrixCoefficients::MC_BT_2020_NCL: {
-      using converter = avif::img::color::ConverterFactory<MatrixCoefficients::MC_BT_2020_NCL>;
-      return createImageRGBA<ConverterRGB, converter>(primary, alphaPic);
+      using Converter = avif::img::color::ColorConverter<MatrixCoefficients::MC_BT_2020_NCL>;
+      return createImageRGBA<ConverterRGB, Converter>(primary, alphaPic);
     }
     case MatrixCoefficients::MC_BT_2020_CL: {
-      using converter = avif::img::color::ConverterFactory<MatrixCoefficients::MC_BT_2020_CL>;
-      return createImageRGBA<ConverterRGB, converter>(primary, alphaPic);
+      using Converter = avif::img::color::ColorConverter<MatrixCoefficients::MC_BT_2020_CL>;
+      return createImageRGBA<ConverterRGB, Converter>(primary, alphaPic);
     }
     case MatrixCoefficients::MC_SMPTE_2085: {
-      using converter = avif::img::color::ConverterFactory<MatrixCoefficients::MC_SMPTE_2085>;
-      return createImageRGBA<ConverterRGB, converter>(primary, alphaPic);
+      using Converter = avif::img::color::ColorConverter<MatrixCoefficients::MC_SMPTE_2085>;
+      return createImageRGBA<ConverterRGB, Converter>(primary, alphaPic);
     }
     case MatrixCoefficients::MC_CHROMAT_NCL: {
-      using converter = avif::img::color::ConverterFactory<MatrixCoefficients::MC_CHROMAT_NCL>;
-      return createImageRGBA<ConverterRGB, converter>(primary, alphaPic);
+      using Converter = avif::img::color::ColorConverter<MatrixCoefficients::MC_CHROMAT_NCL>;
+      return createImageRGBA<ConverterRGB, Converter>(primary, alphaPic);
     }
     case MatrixCoefficients::MC_CHROMAT_CL: {
-      using converter = avif::img::color::ConverterFactory<MatrixCoefficients::MC_CHROMAT_CL>;
-      return createImageRGBA<ConverterRGB, converter>(primary, alphaPic);
+      using Converter = avif::img::color::ColorConverter<MatrixCoefficients::MC_CHROMAT_CL>;
+      return createImageRGBA<ConverterRGB, Converter>(primary, alphaPic);
     }
     case MatrixCoefficients::MC_BT_2100_ICTCP: {
-      using converter = avif::img::color::ConverterFactory<MatrixCoefficients::MC_BT_2100_ICTCP>;
-      return createImageRGBA<ConverterRGB, converter>(primary, alphaPic);
+      using Converter = avif::img::color::ColorConverter<MatrixCoefficients::MC_BT_2100_ICTCP>;
+      return createImageRGBA<ConverterRGB, Converter>(primary, alphaPic);
     }
     default:
       assert(false && "Unknown matrix coefficients");
@@ -260,57 +260,57 @@ std::variant<
   using avif::img::color::MatrixCoefficients;
   switch (static_cast<MatrixCoefficients>(cicp.matrixCoefficients)) {
     case MatrixCoefficients::MC_IDENTITY: {
-      using converter = avif::img::color::ConverterFactory<MatrixCoefficients::MC_IDENTITY>;
-      return createImage<converter>(primary, alpha);
+      using Converter = avif::img::color::ColorConverter<MatrixCoefficients::MC_IDENTITY>;
+      return createImage<Converter>(primary, alpha);
     }
     case MatrixCoefficients::MC_BT_709: {
-      using converter = avif::img::color::ConverterFactory<MatrixCoefficients::MC_BT_709>;
-      return createImage<converter>(primary, alpha);
+      using Converter = avif::img::color::ColorConverter<MatrixCoefficients::MC_BT_709>;
+      return createImage<Converter>(primary, alpha);
     }
     case MatrixCoefficients::MC_FCC: {
-      using converter = avif::img::color::ConverterFactory<MatrixCoefficients::MC_FCC>;
-      return createImage<converter>(primary, alpha);
+      using Converter = avif::img::color::ColorConverter<MatrixCoefficients::MC_FCC>;
+      return createImage<Converter>(primary, alpha);
     }
     case MatrixCoefficients::MC_UNSPECIFIED:
     case MatrixCoefficients::MC_BT_470_B_G: {
-      using converter = avif::img::color::ConverterFactory<MatrixCoefficients::MC_BT_470_B_G>;
-      return createImage<converter>(primary, alpha);
+      using Converter = avif::img::color::ColorConverter<MatrixCoefficients::MC_BT_470_B_G>;
+      return createImage<Converter>(primary, alpha);
     }
     case MatrixCoefficients::MC_NSTC: {
-      using converter = avif::img::color::ConverterFactory<MatrixCoefficients::MC_NSTC>;
-      return createImage<converter>(primary, alpha);
+      using Converter = avif::img::color::ColorConverter<MatrixCoefficients::MC_NSTC>;
+      return createImage<Converter>(primary, alpha);
     }
     case MatrixCoefficients::MC_SMPTE_240: {
-      using converter = avif::img::color::ConverterFactory<MatrixCoefficients::MC_SMPTE_240>;
-      return createImage<converter>(primary, alpha);
+      using Converter = avif::img::color::ColorConverter<MatrixCoefficients::MC_SMPTE_240>;
+      return createImage<Converter>(primary, alpha);
     }
     case MatrixCoefficients::MC_SMPTE_YCGCO: {
-      using converter = avif::img::color::ConverterFactory<MatrixCoefficients::MC_SMPTE_YCGCO>;
-      return createImage<converter>(primary, alpha);
+      using Converter = avif::img::color::ColorConverter<MatrixCoefficients::MC_SMPTE_YCGCO>;
+      return createImage<Converter>(primary, alpha);
     }
     case MatrixCoefficients::MC_BT_2020_NCL: {
-      using converter = avif::img::color::ConverterFactory<MatrixCoefficients::MC_BT_2020_NCL>;
-      return createImage<converter>(primary, alpha);
+      using Converter = avif::img::color::ColorConverter<MatrixCoefficients::MC_BT_2020_NCL>;
+      return createImage<Converter>(primary, alpha);
     }
     case MatrixCoefficients::MC_BT_2020_CL: {
-      using converter = avif::img::color::ConverterFactory<MatrixCoefficients::MC_BT_2020_CL>;
-      return createImage<converter>(primary, alpha);
+      using Converter = avif::img::color::ColorConverter<MatrixCoefficients::MC_BT_2020_CL>;
+      return createImage<Converter>(primary, alpha);
     }
     case MatrixCoefficients::MC_SMPTE_2085: {
-      using converter = avif::img::color::ConverterFactory<MatrixCoefficients::MC_SMPTE_2085>;
-      return createImage<converter>(primary, alpha);
+      using Converter = avif::img::color::ColorConverter<MatrixCoefficients::MC_SMPTE_2085>;
+      return createImage<Converter>(primary, alpha);
     }
     case MatrixCoefficients::MC_CHROMAT_NCL: {
-      using converter = avif::img::color::ConverterFactory<MatrixCoefficients::MC_CHROMAT_NCL>;
-      return createImage<converter>(primary, alpha);
+      using Converter = avif::img::color::ColorConverter<MatrixCoefficients::MC_CHROMAT_NCL>;
+      return createImage<Converter>(primary, alpha);
     }
     case MatrixCoefficients::MC_CHROMAT_CL: {
-      using converter = avif::img::color::ConverterFactory<MatrixCoefficients::MC_CHROMAT_CL>;
-      return createImage<converter>(primary, alpha);
+      using Converter = avif::img::color::ColorConverter<MatrixCoefficients::MC_CHROMAT_CL>;
+      return createImage<Converter>(primary, alpha);
     }
     case MatrixCoefficients::MC_BT_2100_ICTCP: {
-      using converter = avif::img::color::ConverterFactory<MatrixCoefficients::MC_BT_2100_ICTCP>;
-      return createImage<converter>(primary, alpha);
+      using Converter = avif::img::color::ColorConverter<MatrixCoefficients::MC_BT_2100_ICTCP>;
+      return createImage<Converter>(primary, alpha);
     }
     default:
       assert(false && "Unknown matrix coefficients");
